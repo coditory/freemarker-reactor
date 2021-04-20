@@ -1,0 +1,34 @@
+plugins {
+    id 'java-library'
+    id 'groovy'
+    id 'jacoco'
+    id 'signing'
+    id 'com.github.kt3k.coveralls' version '2.12.0'
+    id 'com.coditory.build' version '0.1.12'
+    id 'io.github.gradle-nexus.publish-plugin' version '1.0.0' apply false
+}
+
+group = 'com.coditory.freemarker'
+description = 'Coditory Freemarker Reactor Library'
+
+dependencies {
+    api 'io.projectreactor:reactor-core:3.4.5'
+    api 'org.jetbrains:annotations:16.0.1'
+    implementation 'org.freemarker:freemarker:2.3.31'
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+
+    implementation 'io.projectreactor.tools:blockhound:1.0.6.RELEASE'
+    implementation 'io.projectreactor:reactor-tools:3.4.5'
+
+    testImplementation 'ch.qos.logback:logback-classic:1.2.3'
+    testImplementation 'org.spockframework:spock-core:2.0-M4-groovy-3.0'
+    testImplementation 'org.skyscreamer:jsonassert:1.5.0'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+}
+
+if (project.hasProperty('publish')) {
+    apply from: "gradle/publish.gradle"
+}
