@@ -14,12 +14,20 @@ public final class ReactiveFreeMarkerTemplate {
     private final Template template;
     private final Locale locale;
     private final ReactiveFreeMarkerTemplateLoader loader;
+    private final TemplateAccessValidator accessValidator;
 
-    ReactiveFreeMarkerTemplate(String name, Locale locale, Template template, ReactiveFreeMarkerTemplateLoader loader) {
+    ReactiveFreeMarkerTemplate(
+            String name,
+            Locale locale,
+            Template template,
+            ReactiveFreeMarkerTemplateLoader loader,
+            TemplateAccessValidator accessValidator
+    ) {
         this.name = name;
         this.template = template;
         this.locale = locale;
         this.loader = loader;
+        this.accessValidator = accessValidator;
     }
 
     public Mono<String> process() {
@@ -27,7 +35,7 @@ public final class ReactiveFreeMarkerTemplate {
     }
 
     public Mono<String> process(Map<String, Object> params) {
-        TemplateResolutionContext context = new TemplateResolutionContext(name);
+        TemplateResolutionContext context = new TemplateResolutionContext(name, accessValidator);
         return resolveDependenciesAndProcess(context, params);
     }
 
@@ -64,6 +72,8 @@ public final class ReactiveFreeMarkerTemplate {
     private Mono<String> resolveDependency(TemplateResolutionContext context, String dependencyName) {
         return loader.loadTemplate(dependencyName, locale)
                 .doOnNext(content -> context.addResolvedDependency(dependencyName, content))
-                .thenReturn(dependencyName);
+                .thenReturn(dependencyName)
+                .onErrorMap(it -> new TemplateCreationException(
+                        "Could not resolve dependency '" + dependencyName + "' for template '" + name + "'", it));
     }
 }

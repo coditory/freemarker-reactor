@@ -18,18 +18,26 @@ public final class ReactiveFreeMarkerTemplateEngine {
         return builder(Configuration.VERSION_2_3_31);
     }
 
+    public static ReactiveFreeMarkerTemplateEngine createWithDefault() {
+        return builder(Configuration.VERSION_2_3_31)
+                .build();
+    }
+
     private final Configuration configuration;
     private final ReactiveFreeMarkerTemplateLoader loader;
+    private final TemplateAccessValidator accessValidator;
     private final Locale defaultLocale;
 
     ReactiveFreeMarkerTemplateEngine(
             Configuration configuration,
             ReactiveFreeMarkerTemplateLoader loader,
+            TemplateAccessValidator accessValidator,
             Locale defaultLocale
     ) {
         this.configuration = configuration;
         this.loader = loader;
         this.defaultLocale = defaultLocale;
+        this.accessValidator = accessValidator;
     }
 
     public Mono<ReactiveFreeMarkerTemplate> createTemplate(String name) {
@@ -47,7 +55,7 @@ public final class ReactiveFreeMarkerTemplateEngine {
             if (locale != null) {
                 template.setLocale(locale);
             }
-            return new ReactiveFreeMarkerTemplate(name, locale, template, loader);
+            return new ReactiveFreeMarkerTemplate(name, locale, template, loader, accessValidator);
         } catch (IOException e) {
             throw new TemplateCreationException("Could not create template: " + name);
         }

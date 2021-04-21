@@ -20,7 +20,7 @@ final class FreeMarkerIncludeDirective implements TemplateDirectiveModel {
         boolean parse = true; //params.get("parse").toString();
         boolean optional = false; //params.get("optional").toString();
         TemplateResolutionContext context = TemplateResolutionContext.getFromThreadLocal();
-        if (context.isDependencyLoaded(templateName)) {
+        if (context.isDependencyLoaded(sourceTemplateName, templateName)) {
             Template includedTemplate;
             try {
                 includedTemplate = env.getTemplateForInclusion(templateName, null, parse, optional);

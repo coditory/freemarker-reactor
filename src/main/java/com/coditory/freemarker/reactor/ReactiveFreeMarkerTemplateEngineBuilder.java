@@ -1,5 +1,6 @@
 package com.coditory.freemarker.reactor;
 
+import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerClasspathLoader;
 import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerTemplateLoader;
 import freemarker.cache.NullCacheStorage;
 import freemarker.core.ArithmeticEngine;
@@ -25,7 +26,7 @@ import java.util.TimeZone;
 
 public final class ReactiveFreeMarkerTemplateEngineBuilder {
     private final Configuration configuration;
-    private ReactiveFreeMarkerTemplateLoader templateLoader;
+    private ReactiveFreeMarkerTemplateLoader templateLoader = new ReactiveFreeMarkerClasspathLoader("templates");
     private Locale defaultLocale;
 
     ReactiveFreeMarkerTemplateEngineBuilder(Version version) {

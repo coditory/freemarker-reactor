@@ -4,6 +4,7 @@ import freemarker.template.TemplateModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,23 +35,33 @@ final class TemplateResolutionContext implements TemplateModel {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final String templateName;
+    private final String templatePrefix;
+    private final TemplateAccessValidator accessValidator;
     private final Map<String, Set<String>> dependencies = new ConcurrentHashMap<>();
     private final Map<String, String> resolved = new ConcurrentHashMap<>();
 
-    TemplateResolutionContext(String templateName) {
-        this.templateName = templateName;
+    TemplateResolutionContext(String templateName, String dependencyPrefix, TemplateAccessValidator accessValidator) {
+        this.templateName = resolve(templateName);
+        this.dependencyPrefix = dependencyPrefix;
+        this.accessValidator = accessValidator;
     }
 
     void addResolvedDependency(String name, String content) {
         resolved.put(name, content);
     }
 
-    boolean isDependencyLoaded(String name) {
-        return resolved.containsKey(name);
+    boolean isDependencyLoaded(String templateName, String templateDependencyName) {
+        String templateDependency = resolve(templateName, templateDependencyName);
+        return resolved.containsKey(templateDependency);
     }
 
-    String getLoadedDependency(String name) {
-        return resolved.get(name);
+    String getLoadedDependency(String templateName, String templateDependencyName) {
+        String template = resolve(this.templateName, templateName);
+        String templateDependency = resolve(templateName, templateDependencyName);
+        if (!accessValidator.hasAccess(template, templateDependency)) {
+            throw new TemplateCreationException("Illegal access from: '" + template + "' to '" + templateDependency + "'");
+        }
+        return resolved.get(templateDependency);
     }
 
     Set<String> getUnresolvedDependencies() {
@@ -64,13 +75,15 @@ final class TemplateResolutionContext implements TemplateModel {
                 .allMatch(resolved::containsKey);
     }
 
-    void addDependency(String templateName, String templateDependency) {
-        if (isCycle(templateName, templateDependency)) {
+    void addDependency(String templateName, String templateDependencyName) {
+        String template = resolve(this.templateName, templateName);
+        String templateDependency = resolve(template, templateDependencyName);
+        if (isCycle(template, templateDependency)) {
             throw new TemplateCreationException("Detected circular template dependency: " +
-                    templateName + " <-> " + templateDependency);
+                    template + " <-> " + templateDependency);
         }
-        logger.info("Added dependency: " + templateName + " -> " + templateDependency);
-        dependencies.compute(templateName, (key, value) -> {
+        logger.info("Added dependency: " + template + " -> " + templateDependency);
+        dependencies.compute(template, (key, value) -> {
             Set<String> values = value == null ? new HashSet<>() : value;
             values.add(templateDependency);
             return values;
@@ -84,6 +97,21 @@ final class TemplateResolutionContext implements TemplateModel {
 
     private Set<String> getAllDependencies(String templateName) {
         return dfs(templateName, dependencies);
+    }
+
+    private String resolve(String templateName) {
+        return Path.of(templateName)
+                .normalize()
+                .toString();
+    }
+
+    private String resolve(String templateName, String dependency) {
+        Path templatePath = Path.of(templateName);
+        Path normalized = Path.of(dependency).normalize();
+        Path resolved = dependency.startsWith("./") || dependency.startsWith("../")
+                ? templatePath.resolve(normalized)
+                : normalized;
+        return resolved.toString();
     }
 
     private Set<String> dfs(String templateName, Map<String, Set<String>> source) {
