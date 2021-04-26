@@ -1,5 +1,6 @@
 package com.coditory.freemarker.reactor.loader;
 
+import com.coditory.freemarker.reactor.TemplateKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
@@ -12,7 +13,6 @@ import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -43,31 +43,31 @@ public class ReactiveFreeMarkerClasspathLoader implements ReactiveFreeMarkerTemp
     }
 
     @Override
-    public Mono<String> loadTemplate(String name, Locale locale) {
-        List<Path> paths = generateFileNames(name, locale);
-        return Flux.fromIterable(paths)
+    public Mono<String> loadTemplate(TemplateKey key) {
+        Path path = generateFileName(key);
+        return Mono.just(path)
                 .flatMap(this::loadTemplate)
-                .next()
-                .onErrorMap(it ->
-                        new TemplateLoadingException("Could not load template from classpath: '" + name + "' from: " + paths, it))
-                .switchIfEmpty(Mono.defer(() -> Mono.error(
-                        new TemplateLoadingException("Missing template file for: '" + name + "'. Checked paths on classpath: " + paths)
-                )));
+                .onErrorMap(it -> new TemplateLoadingException("Could not load template from classpath: '" + key + "' from: " + path, it))
+                .doOnNext(it -> logger.debug("Loaded template from classpath: " + key + "', path: " + path))
+                .switchIfEmpty(Mono.defer(() -> {
+                    logger.debug("Could not find template on classpath: " + key + "'. Checked path: " + path);
+                    return Mono.empty();
+                }));
     }
 
-    private List<Path> generateFileNames(String name, Locale locale) {
-        Path pathNoLocale = basePath.resolve(name + fileExtension);
+    private Path generateFileName(TemplateKey key) {
+        String name = key.getName();
+        Locale locale = key.getLocale();
+        Path basePathWithNamespace = key.getNamespace() != null
+                ? basePath.resolve(key.getNamespace())
+                : basePath;
         if (locale == null || locale.getLanguage().isEmpty()) {
-            return List.of(pathNoLocale);
+            return basePathWithNamespace.resolve(name + fileExtension);
         }
-        List<Path> result = new ArrayList<>();
-        result.add(pathNoLocale);
-        result.add(basePath.resolve(name + "_" + locale.getLanguage() + fileExtension));
-        if (locale.getCountry() != null && !locale.getCountry().isEmpty()) {
-            result.add(basePath.resolve(name + "_" + locale.getLanguage() + "_" + locale.getCountry() + fileExtension));
+        if (!locale.getCountry().isEmpty()) {
+            return basePathWithNamespace.resolve(name + "_" + locale.getLanguage() + "_" + locale.getCountry() + fileExtension);
         }
-        Collections.reverse(result);
-        return result;
+        return basePathWithNamespace.resolve(name + "_" + locale.getLanguage() + fileExtension);
     }
 
     private Mono<String> loadTemplate(Path relativePath) {
@@ -79,14 +79,9 @@ public class ReactiveFreeMarkerClasspathLoader implements ReactiveFreeMarkerTemp
                 ? initFileSystem(uri)
                 : null;
         Path path = Path.of(uri);
-        return Flux.using(
-                () -> Files.lines(path),
-                Flux::fromStream,
-                stream -> close(stream, fs)
-        ).collectList()
-                .map(it -> String.join("\n", it))
-                .doOnNext(it -> logger.info("Loaded template from classpath: " + relativePath))
-                .onErrorResume(NoSuchFileException.class, e -> Mono.empty());
+        return FileReader.readText(path)
+                .onErrorResume(NoSuchFileException.class, e -> Mono.empty())
+                .doFinally(it -> close(fs));
     }
 
     private URI resolveClassPathFile(Path relativePath) {
@@ -110,12 +105,7 @@ public class ReactiveFreeMarkerClasspathLoader implements ReactiveFreeMarkerTemp
         }
     }
 
-    private void close(Stream<String> stream, FileSystem fileSystem) {
-        try {
-            stream.close();
-        } catch (Throwable e) {
-            throw new TemplateLoadingException("Could not close stream when reading template from classpath", e);
-        }
+    private void close(FileSystem fileSystem) {
         if (fileSystem != null) {
             try {
                 fileSystem.close();

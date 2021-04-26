@@ -1,33 +1,25 @@
 package com.coditory.freemarker.reactor;
 
-import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerTemplateLoader;
 import freemarker.template.Template;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.StringWriter;
-import java.util.Locale;
 import java.util.Map;
 
 public final class ReactiveFreeMarkerTemplate {
-    private final String name;
+    private final TemplateKey key;
     private final Template template;
-    private final Locale locale;
-    private final ReactiveFreeMarkerTemplateLoader loader;
-    private final TemplateAccessValidator accessValidator;
+    private final TemplateLoader loader;
 
     ReactiveFreeMarkerTemplate(
-            String name,
-            Locale locale,
+            TemplateKey key,
             Template template,
-            ReactiveFreeMarkerTemplateLoader loader,
-            TemplateAccessValidator accessValidator
+            TemplateLoader loader
     ) {
-        this.name = name;
+        this.key = key;
         this.template = template;
-        this.locale = locale;
         this.loader = loader;
-        this.accessValidator = accessValidator;
     }
 
     public Mono<String> process() {
@@ -35,7 +27,7 @@ public final class ReactiveFreeMarkerTemplate {
     }
 
     public Mono<String> process(Map<String, Object> params) {
-        TemplateResolutionContext context = new TemplateResolutionContext(name, accessValidator);
+        TemplateResolutionContext context = new TemplateResolutionContext(key);
         return resolveDependenciesAndProcess(context, params);
     }
 
@@ -52,7 +44,7 @@ public final class ReactiveFreeMarkerTemplate {
             template.process(params, writer);
             return writer.toString();
         } catch (Exception e) {
-            throw new TemplateCreationException("Could not resolve template: " + name, e);
+            throw new TemplateResolutionException("Could not resolve template: '" + key + "'", e);
         } finally {
             TemplateResolutionContext.removeFromThreadLocal();
         }
@@ -64,16 +56,16 @@ public final class ReactiveFreeMarkerTemplate {
                 .flatMap(it -> process(context, params));
     }
 
-    private Flux<String> resolveDependencies(TemplateResolutionContext context) {
+    private Flux<TemplateKey> resolveDependencies(TemplateResolutionContext context) {
         return Flux.fromIterable(context.getUnresolvedDependencies())
                 .flatMap(it -> resolveDependency(context, it));
     }
 
-    private Mono<String> resolveDependency(TemplateResolutionContext context, String dependencyName) {
-        return loader.loadTemplate(dependencyName, locale)
-                .doOnNext(content -> context.addResolvedDependency(dependencyName, content))
-                .thenReturn(dependencyName)
-                .onErrorMap(it -> new TemplateCreationException(
-                        "Could not resolve dependency '" + dependencyName + "' for template '" + name + "'", it));
+    private Mono<TemplateKey> resolveDependency(TemplateResolutionContext context, TemplateKey templateKey) {
+        return loader.loadTemplate(templateKey)
+                .doOnNext(resolved -> context.addResolvedDependency(templateKey, resolved))
+                .thenReturn(templateKey)
+                .onErrorMap(it -> new TemplateResolutionException(
+                        "Could not resolve template '" + key + "'. Could not resolve template dependency '" + templateKey + "'", it));
     }
 }

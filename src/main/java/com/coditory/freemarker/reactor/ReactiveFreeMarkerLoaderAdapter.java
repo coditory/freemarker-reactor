@@ -1,6 +1,8 @@
 package com.coditory.freemarker.reactor;
 
 import freemarker.cache.TemplateLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -9,6 +11,8 @@ import java.util.regex.Pattern;
 
 final class ReactiveFreeMarkerLoaderAdapter implements TemplateLoader {
     private static final Pattern localePattern = Pattern.compile("(.+)(_[a-z][a-z](_[A-Z][A-Z])?)?");
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
 
     @Override
     public Object findTemplateSource(String name) {
@@ -21,7 +25,10 @@ final class ReactiveFreeMarkerLoaderAdapter implements TemplateLoader {
 
     private String load(String name) {
         TemplateResolutionContext context = TemplateResolutionContext.getFromThreadLocal();
-        return context.getLoadedDependency(name);
+        TemplateKey key = context.getResolvedTemplate().withName(name);
+        String result = context.getLoaded(key).getContent();
+        logger.info("Resolving dependency: {} {} for {}\n{}", name, key, context.getResolvedTemplate(), result);
+        return result;
     }
 
     @Override

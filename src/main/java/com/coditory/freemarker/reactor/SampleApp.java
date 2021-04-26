@@ -12,8 +12,6 @@ import java.util.Map;
 import static reactor.core.scheduler.Schedulers.parallel;
 
 class SampleApp {
-    private static final Logger log = LoggerFactory.getLogger(SampleApp.class);
-
     public static void main(String[] args) {
         BlockHound.install();
         ReactorDebugAgent.init();
@@ -27,10 +25,10 @@ class SampleApp {
                 .subscribeOn(parallel())
                 .block();
 
-        String result = template.process(Map.of("name", "John"))
+        String result = template.process(Map.of("a", true))
                 .subscribeOn(parallel())
                 .block();
 
-        log.info("Result:\n" + result);
+        System.out.println("Result:\n" + result);
     }
 }

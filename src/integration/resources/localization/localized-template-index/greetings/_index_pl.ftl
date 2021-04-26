@@ -1,0 +1,1 @@
+Template: greetings/index_pl

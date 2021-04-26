@@ -20,10 +20,18 @@ final class FreeMarkerIncludeDirective implements TemplateDirectiveModel {
         boolean parse = true; //params.get("parse").toString();
         boolean optional = false; //params.get("optional").toString();
         TemplateResolutionContext context = TemplateResolutionContext.getFromThreadLocal();
-        if (context.isDependencyLoaded(sourceTemplateName, templateName)) {
+        TemplateKey parent = context.getResolvedTemplate();
+        TemplateKey templateKey = context.isLoaded(parent.withName(sourceTemplateName))
+            ? context.getResolvedTemplate(parent.withName(sourceTemplateName))
+            : parent.withName(sourceTemplateName);
+        TemplateKey dependency = templateKey.dependencyKey(templateName);
+        context.validateDependency(templateKey, dependency);
+        if (context.isLoaded(dependency)) {
             Template includedTemplate;
             try {
-                includedTemplate = env.getTemplateForInclusion(templateName, null, parse, optional);
+                context.setResolvedTemplate(templateKey);
+                includedTemplate = env.getTemplateForInclusion(dependency.getName(), null, parse, optional);
+                context.setResolvedTemplate(parent);
             } catch (IOException e) {
                 throw new _MiscTemplateException(
                         e, env,
@@ -35,7 +43,7 @@ final class FreeMarkerIncludeDirective implements TemplateDirectiveModel {
                 env.include(includedTemplate);
             }
         } else {
-            context.addDependency(sourceTemplateName, templateName);
+            context.addDependency(templateKey, dependency);
         }
     }
 }
