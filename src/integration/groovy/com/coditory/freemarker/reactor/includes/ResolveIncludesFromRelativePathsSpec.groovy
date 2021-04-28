@@ -1,20 +1,20 @@
-package com.coditory.freemarker.reactor
+package com.coditory.freemarker.reactor.includes
 
+import com.coditory.freemarker.reactor.ReactiveFreeMarkerTemplateEngine
+import com.coditory.freemarker.reactor.base.ProcessesTemplate
 import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerClasspathLoader
 import spock.lang.Specification
 
 import static com.coditory.freemarker.reactor.base.MultilineString.multiline
 
-class ResolveIncludesFromRelativePathsSpec extends Specification {
+class ResolveIncludesFromRelativePathsSpec extends Specification implements ProcessesTemplate {
     ReactiveFreeMarkerTemplateEngine engine = ReactiveFreeMarkerTemplateEngine.builder()
-            .setTemplateLoader(new ReactiveFreeMarkerClasspathLoader("relative-path-includes"))
+            .setTemplateLoader(new ReactiveFreeMarkerClasspathLoader("includes/relative-path-includes"))
             .build()
 
-    def "should resolve template dependencies from relative paths"() {
-        given:
-            ReactiveFreeMarkerTemplate template = engine.createTemplate("x/test").block()
+    def "should resolve includes from relative paths"() {
         when:
-            String result = template.process().block()
+            String result = processTemplate("x/test")
         then:
             result == multiline(
                     "Template with relative includes",

@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
-class TemplateNameResolver {
+final class TemplateNameResolver {
     static final Pattern TEMPLATE_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9-_/.]+");
 
     static String resolveTemplateDependencyName(String templateName, String dependencyName) {
@@ -24,12 +24,23 @@ class TemplateNameResolver {
         return normalize(path, templateName);
     }
 
+    static String resolveTemplateBaseName(String templateName) {
+        Path path = resolveTemplatePath(templateName);
+        String result = normalize(path, templateName);
+        if (result.endsWith("/_index")) {
+            result = result.substring(0, result.length() - "/_index".length());
+        } else if (result.equals("_index")) {
+            throw new IllegalArgumentException("Template name points to base path index: '" + templateName + "'");
+        }
+        return result;
+    }
+
     private static String normalize(Path path, String templateName) {
         Path normalized = path.normalize();
         if (normalized.isAbsolute() || normalized.startsWith("..")) {
             throw new IllegalArgumentException("Template name points outside base path: '" + templateName + "'");
         }
-        return normalized.toString();
+        return normalized.toString().replace('\\', '/');
     }
 
     private static Path resolveTemplatePath(String templateName) {
@@ -46,11 +57,21 @@ class TemplateNameResolver {
             throw new IllegalArgumentException("Invalid character in template name: '" + templateName + "'"
                     + ". Template name must comply: " + TEMPLATE_NAME_PATTERN.pattern());
         }
-        Arrays.stream(templateName.split("/")).forEach(part -> {
-            if (part.length() > 1 && part.indexOf('_', 1) >= 0) {
-                throw new IllegalArgumentException("Invalid character '_' in template name: '" + templateName + "'"
-                        + ". Use '-' instead.");
+        String[] parts = templateName.split("/");
+        for (int i = 0; i < parts.length; ++i) {
+            String part = parts[i];
+            if (i == parts.length - 1) {
+                if (part.length() > 1 && part.indexOf('_', 1) >= 0) {
+                    throw new IllegalArgumentException("Invalid character '_' in template name: '" + templateName + "'"
+                            + ". Use '-' instead.");
+                }
             }
-        });
+//            } else {
+//                if (part.indexOf('_') >= 0) {
+//                    throw new IllegalArgumentException("Invalid character '_' in template name: '" + templateName + "'"
+//                            + ". Only files may be marked as protected.");
+//                }
+//            }
+        }
     }
 }

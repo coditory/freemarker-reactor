@@ -34,6 +34,7 @@ public final class ReactiveFreeMarkerTemplateEngineBuilder {
         this.configuration.setCacheStorage(new NullCacheStorage());
         this.configuration.setLocalizedLookup(false);
         this.configuration.setWhitespaceStripping(true);
+        this.configuration.setLogTemplateExceptions(false);
     }
 
     public ReactiveFreeMarkerTemplateEngineBuilder setDefaultEncoding(String defaultEncoding) {
@@ -74,11 +75,6 @@ public final class ReactiveFreeMarkerTemplateEngineBuilder {
     public ReactiveFreeMarkerTemplateEngineBuilder setDefaultLocale(Locale locale) {
         this.defaultLocale = locale;
         configuration.setLocale(locale);
-        return this;
-    }
-
-    public ReactiveFreeMarkerTemplateEngineBuilder setLogTemplateExceptions(boolean logTemplateExceptions) {
-        configuration.setLogTemplateExceptions(logTemplateExceptions);
         return this;
     }
 
@@ -248,8 +244,9 @@ public final class ReactiveFreeMarkerTemplateEngineBuilder {
     }
 
     public ReactiveFreeMarkerTemplateEngine build() {
-        configuration.setSharedVariable("include", new FreeMarkerIncludeDirective());
-        configuration.setTemplateLoader(new ReactiveFreeMarkerLoaderAdapter());
+        configuration.setSharedVariable("include", new IncludeDirective());
+        configuration.setSharedVariable("import", new ImportDirective());
+        configuration.setTemplateLoader(new TemplateLoaderAdapter());
         TemplateLoader loader = new TemplateLoader(this.templateLoader, List.of());
         return new ReactiveFreeMarkerTemplateEngine(configuration, loader, defaultLocale);
     }

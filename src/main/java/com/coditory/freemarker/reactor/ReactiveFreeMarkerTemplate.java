@@ -1,5 +1,6 @@
 package com.coditory.freemarker.reactor;
 
+import freemarker.core.InvalidReferenceException;
 import freemarker.template.Template;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -43,6 +44,11 @@ public final class ReactiveFreeMarkerTemplate {
             TemplateResolutionContext.setupInThreadLocal(context);
             template.process(params, writer);
             return writer.toString();
+        } catch (InvalidReferenceException e) {
+            if (context.allDependenciesLoaded()) {
+                throw new TemplateResolutionException("Could not resolve template: '" + key + "'", e);
+            }
+            return "";
         } catch (Exception e) {
             throw new TemplateResolutionException("Could not resolve template: '" + key + "'", e);
         } finally {

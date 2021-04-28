@@ -3,10 +3,11 @@ package com.coditory.freemarker.reactor;
 import java.util.Locale;
 import java.util.Objects;
 
+import static com.coditory.freemarker.reactor.TemplateNameResolver.resolveTemplateBaseName;
 import static com.coditory.freemarker.reactor.TemplateNameResolver.resolveTemplateDependencyName;
 import static com.coditory.freemarker.reactor.TemplateNameResolver.resolveTemplateName;
 
-public class TemplateKey {
+public final class TemplateKey {
     private final String namespace;
     private final String name;
     private final Locale locale;
@@ -56,6 +57,10 @@ public class TemplateKey {
 
     public String getName() {
         return name;
+    }
+
+    public String getTemplateBaseName() {
+        return resolveTemplateBaseName(name);
     }
 
     public Locale getLocale() {

@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-public class ReactiveFreeMarkerFileLoader implements ReactiveFreeMarkerTemplateLoader {
+public final class ReactiveFreeMarkerFileLoader implements ReactiveFreeMarkerTemplateLoader {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final Path basePath;
     private final String fileExtension;

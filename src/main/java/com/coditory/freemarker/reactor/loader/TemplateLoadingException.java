@@ -1,6 +1,6 @@
 package com.coditory.freemarker.reactor.loader;
 
-public class TemplateLoadingException extends RuntimeException {
+public final class TemplateLoadingException extends RuntimeException {
     public TemplateLoadingException() {
     }
 

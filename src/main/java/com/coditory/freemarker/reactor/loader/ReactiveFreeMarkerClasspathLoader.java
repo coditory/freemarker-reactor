@@ -22,7 +22,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class ReactiveFreeMarkerClasspathLoader implements ReactiveFreeMarkerTemplateLoader {
+public final class ReactiveFreeMarkerClasspathLoader implements ReactiveFreeMarkerTemplateLoader {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final ClassLoader classLoader;
     private final Path basePath;

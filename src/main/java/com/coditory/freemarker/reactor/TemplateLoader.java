@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
-class TemplateLoader {
+final class TemplateLoader {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final ReactiveFreeMarkerTemplateLoader loader;
     private final List<String> globalNamespaces;

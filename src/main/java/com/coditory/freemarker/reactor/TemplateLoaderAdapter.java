@@ -9,7 +9,7 @@ import java.io.StringReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-final class ReactiveFreeMarkerLoaderAdapter implements TemplateLoader {
+final class TemplateLoaderAdapter implements TemplateLoader {
     private static final Pattern localePattern = Pattern.compile("(.+)(_[a-z][a-z](_[A-Z][A-Z])?)?");
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 

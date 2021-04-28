@@ -1,31 +1,30 @@
-package com.coditory.freemarker.reactor
+package com.coditory.freemarker.reactor.includes
 
+import com.coditory.freemarker.reactor.ReactiveFreeMarkerTemplateEngine
+import com.coditory.freemarker.reactor.TemplateResolutionException
+import com.coditory.freemarker.reactor.base.ProcessesTemplate
 import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerClasspathLoader
 import spock.lang.Specification
 
 import static com.coditory.freemarker.reactor.base.MultilineString.multiline
 
-class ResolvePackageScopeTemplatesSpec extends Specification {
+class ResolvePackageScopeIncludesSpec extends Specification implements ProcessesTemplate {
     ReactiveFreeMarkerTemplateEngine engine = ReactiveFreeMarkerTemplateEngine.builder()
-            .setTemplateLoader(new ReactiveFreeMarkerClasspathLoader("package-scope-templates"))
+            .setTemplateLoader(new ReactiveFreeMarkerClasspathLoader("includes/package-scope-includes"))
             .build()
 
     def "should throw error when including private template from other directory"() {
-        given:
-            ReactiveFreeMarkerTemplate template = engine.createTemplate("invalid-include").block()
         when:
-            template.process().block()
+            processTemplate("invalid-include")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
             e.message == "Could not resolve template: 'invalid-include'"
             e.cause.message == "Detected dependency to package scope template: invalid-include -> x/_a"
     }
 
-    def "should resolve dependencies that does not violate package templates"() {
-        given:
-            ReactiveFreeMarkerTemplate template = engine.createTemplate("valid-include").block()
+    def "should resolve package scope include that does not violate the scope"() {
         when:
-            String result = template.process().block()
+            String result = processTemplate("valid-include")
         then:
             result == multiline(
                     "Template: valid-include",

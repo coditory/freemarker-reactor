@@ -7,11 +7,15 @@ import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateDirectiveModel;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
 
-final class FreeMarkerIncludeDirective implements TemplateDirectiveModel {
+final class IncludeDirective implements TemplateDirectiveModel {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body) throws TemplateException, IOException {
@@ -30,6 +34,7 @@ final class FreeMarkerIncludeDirective implements TemplateDirectiveModel {
             Template includedTemplate;
             try {
                 context.setResolvedTemplate(templateKey);
+                logger.debug("Including template to {}: {}", templateKey.getName(), dependency.getName());
                 includedTemplate = env.getTemplateForInclusion(dependency.getName(), null, parse, optional);
                 context.setResolvedTemplate(parent);
             } catch (IOException e) {

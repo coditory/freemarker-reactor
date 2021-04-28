@@ -1,6 +1,6 @@
 package com.coditory.freemarker.reactor;
 
-public class TemplateResolutionException extends RuntimeException {
+public final class TemplateResolutionException extends RuntimeException {
     public TemplateResolutionException() {
     }
 

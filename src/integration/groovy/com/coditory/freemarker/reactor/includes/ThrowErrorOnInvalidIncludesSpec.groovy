@@ -1,16 +1,19 @@
-package com.coditory.freemarker.reactor
+package com.coditory.freemarker.reactor.includes
 
+import com.coditory.freemarker.reactor.ReactiveFreeMarkerTemplateEngine
+import com.coditory.freemarker.reactor.TemplateResolutionException
+import com.coditory.freemarker.reactor.base.ProcessesTemplate
 import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerClasspathLoader
 import spock.lang.Specification
 
-class ThrowErrorOnInvalidIncludesSpec extends Specification {
+class ThrowErrorOnInvalidIncludesSpec extends Specification implements ProcessesTemplate {
     ReactiveFreeMarkerTemplateEngine engine = ReactiveFreeMarkerTemplateEngine.builder()
-            .setTemplateLoader(new ReactiveFreeMarkerClasspathLoader("invalid-includes"))
+            .setTemplateLoader(new ReactiveFreeMarkerClasspathLoader("includes/invalid-includes"))
             .build()
 
     def "should throw error on missing include"() {
         when:
-            resolve("missing-include")
+            processTemplate("missing-include")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
             e.message == "Could not resolve template 'missing-include'. Could not resolve template dependency 'missing-123'"
@@ -19,7 +22,7 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification {
 
     def "should throw error on missing transitive include"() {
         when:
-            resolve("missing-transitive-include")
+            processTemplate("missing-transitive-include")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
             e.message == "Could not resolve template 'missing-transitive-include'. Could not resolve template dependency 'missing-123'"
@@ -28,7 +31,7 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification {
 
     def "should throw error on include from root directory"() {
         when:
-            resolve("include-from-root-directory")
+            processTemplate("include-from-root-directory")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
             e.message == "Could not resolve template: 'include-from-root-directory'"
@@ -37,7 +40,7 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification {
 
     def "should throw error on include from outside base path"() {
         when:
-            resolve("include-outside-base-path")
+            processTemplate("include-outside-base-path")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
             e.message == "Could not resolve template: 'include-outside-base-path'"
@@ -46,7 +49,7 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification {
 
     def "should throw error on include from outside base path in the middle of the path"() {
         when:
-            resolve("include-outside-base-path-middle")
+            processTemplate("include-outside-base-path-middle")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
             e.message == "Could not resolve template: 'include-outside-base-path-middle'"
@@ -55,7 +58,7 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification {
 
     def "should throw error on includes cycle"() {
         when:
-            resolve("cycle/include-with-cycle")
+            processTemplate("cycle/include-with-cycle")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
             e.message == "Could not resolve template: 'cycle/include-with-cycle'"
@@ -64,15 +67,10 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification {
 
     def "should throw error on include to itself"() {
         when:
-            resolve("include-self")
+            processTemplate("include-self")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
             e.message == "Could not resolve template: 'include-self'"
             e.cause.message == "Detected circular template dependency: include-self <-> include-self"
-    }
-
-    private void resolve(String templateName) {
-        ReactiveFreeMarkerTemplate template = engine.createTemplate(templateName).block()
-        template.process().block()
     }
 }
