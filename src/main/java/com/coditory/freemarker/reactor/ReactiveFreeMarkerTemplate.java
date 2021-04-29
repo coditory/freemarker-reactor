@@ -46,11 +46,11 @@ public final class ReactiveFreeMarkerTemplate {
             return writer.toString();
         } catch (InvalidReferenceException e) {
             if (context.allDependenciesLoaded()) {
-                throw new TemplateResolutionException("Could not resolve template: '" + key + "'", e);
+                throw new TemplateResolutionException("Could not resolve template " + key, e);
             }
             return "";
         } catch (Exception e) {
-            throw new TemplateResolutionException("Could not resolve template: '" + key + "'", e);
+            throw new TemplateResolutionException("Could not resolve template " + key, e);
         } finally {
             TemplateResolutionContext.removeFromThreadLocal();
         }
@@ -72,6 +72,6 @@ public final class ReactiveFreeMarkerTemplate {
                 .doOnNext(resolved -> context.addResolvedDependency(templateKey, resolved))
                 .thenReturn(templateKey)
                 .onErrorMap(it -> new TemplateResolutionException(
-                        "Could not resolve template '" + key + "'. Could not resolve template dependency '" + templateKey + "'", it));
+                        "Could not resolve template " + key + ". Could not resolve template dependency " + templateKey, it));
     }
 }

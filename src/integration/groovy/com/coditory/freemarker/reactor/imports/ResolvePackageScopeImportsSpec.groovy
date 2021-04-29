@@ -18,8 +18,8 @@ class ResolvePackageScopeImportsSpec extends Specification implements ProcessesT
             processTemplate("invalid-import")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
-            e.message == "Could not resolve template: 'invalid-import'"
-            e.cause.message == "Detected dependency to package scope template: invalid-import -> x/_a"
+            e.message == "Could not resolve template 'invalid-import'"
+            e.cause.message == "Detected dependency to package scope template: 'invalid-import' -> 'x/_a'"
     }
 
     def "should resolve package scope importing that does not violate the scope"() {

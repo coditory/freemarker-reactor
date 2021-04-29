@@ -13,7 +13,7 @@ import java.util.Map;
 import static freemarker.core.TemplatePositionalParametersExtractor.extractPositionalParams;
 import static java.util.Objects.requireNonNull;
 
-class TemplateDirectiveAdapter implements TemplateDirectiveModel {
+final class TemplateDirectiveAdapter implements TemplateDirectiveModel {
     private final TemplateDirective directive;
 
     TemplateDirectiveAdapter(TemplateDirective directive) {

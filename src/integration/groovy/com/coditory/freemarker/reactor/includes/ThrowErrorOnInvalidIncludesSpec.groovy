@@ -17,7 +17,7 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification implements Processes
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
             e.message == "Could not resolve template 'missing-include'. Could not resolve template dependency 'missing-123'"
-            e.cause.message == "Missing template: 'missing-123'"
+            e.cause.message == "Missing template 'missing-123'"
     }
 
     def "should throw error on missing transitive include"() {
@@ -26,7 +26,7 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification implements Processes
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
             e.message == "Could not resolve template 'missing-transitive-include'. Could not resolve template dependency 'missing-123'"
-            e.cause.message == "Missing template: 'missing-123'"
+            e.cause.message == "Missing template 'missing-123'"
     }
 
     def "should throw error on include from root directory"() {
@@ -34,8 +34,8 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification implements Processes
             processTemplate("include-from-root-directory")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
-            e.message == "Could not resolve template: 'include-from-root-directory'"
-            e.cause.message == "Template name points outside base path: '/abc'"
+            e.message == "Could not resolve template 'include-from-root-directory'"
+            e.cause.message == "Template name '/abc' points outside of the base path"
     }
 
     def "should throw error on include from outside base path"() {
@@ -43,8 +43,8 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification implements Processes
             processTemplate("include-outside-base-path")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
-            e.message == "Could not resolve template: 'include-outside-base-path'"
-            e.cause.message == "Template name points outside base path: '../a'"
+            e.message == "Could not resolve template 'include-outside-base-path'"
+            e.cause.message == "Template name '../a' points outside of the base path"
     }
 
     def "should throw error on include from outside base path in the middle of the path"() {
@@ -52,8 +52,8 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification implements Processes
             processTemplate("include-outside-base-path-middle")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
-            e.message == "Could not resolve template: 'include-outside-base-path-middle'"
-            e.cause.message == "Template name points outside base path: 'x/y/../../../a'"
+            e.message == "Could not resolve template 'include-outside-base-path-middle'"
+            e.cause.message == "Template name 'x/y/../../../a' points outside of the base path"
     }
 
     def "should throw error on includes cycle"() {
@@ -61,8 +61,8 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification implements Processes
             processTemplate("cycle/include-with-cycle")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
-            e.message == "Could not resolve template: 'cycle/include-with-cycle'"
-            e.cause.message == "Detected circular template dependency: cycle/c <-> cycle/a"
+            e.message == "Could not resolve template 'cycle/include-with-cycle'"
+            e.cause.message == "Detected circular template dependency: 'cycle/c' <-> 'cycle/a'"
     }
 
     def "should throw error on include to itself"() {
@@ -70,7 +70,7 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification implements Processes
             processTemplate("include-self")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
-            e.message == "Could not resolve template: 'include-self'"
-            e.cause.message == "Detected circular template dependency: include-self <-> include-self"
+            e.message == "Could not resolve template 'include-self'"
+            e.cause.message == "Detected circular template dependency: 'include-self' <-> 'include-self'"
     }
 }

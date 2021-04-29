@@ -1,7 +1,6 @@
 package com.coditory.freemarker.reactor;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.regex.Pattern;
 
 final class TemplateNameResolver {
@@ -30,7 +29,7 @@ final class TemplateNameResolver {
         if (result.endsWith("/_index")) {
             result = result.substring(0, result.length() - "/_index".length());
         } else if (result.equals("_index")) {
-            throw new IllegalArgumentException("Template name points to base path index: '" + templateName + "'");
+            throw new IllegalArgumentException("Template name '" + templateName + "' points to base path");
         }
         return result;
     }
@@ -38,7 +37,7 @@ final class TemplateNameResolver {
     private static String normalize(Path path, String templateName) {
         Path normalized = path.normalize();
         if (normalized.isAbsolute() || normalized.startsWith("..")) {
-            throw new IllegalArgumentException("Template name points outside base path: '" + templateName + "'");
+            throw new IllegalArgumentException("Template name '" + templateName + "' points outside of the base path");
         }
         return normalized.toString().replace('\\', '/');
     }
@@ -47,7 +46,7 @@ final class TemplateNameResolver {
         validateTemplateName(templateName);
         Path path = Path.of(templateName).normalize();
         if (path.isAbsolute() || path.startsWith("..")) {
-            throw new IllegalArgumentException("Template name points outside base path: '" + templateName + "'");
+            throw new IllegalArgumentException("Template name '" + templateName + "' points outside of the base path");
         }
         return path;
     }
@@ -66,12 +65,6 @@ final class TemplateNameResolver {
                             + ". Use '-' instead.");
                 }
             }
-//            } else {
-//                if (part.indexOf('_') >= 0) {
-//                    throw new IllegalArgumentException("Invalid character '_' in template name: '" + templateName + "'"
-//                            + ". Only files may be marked as protected.");
-//                }
-//            }
         }
     }
 }

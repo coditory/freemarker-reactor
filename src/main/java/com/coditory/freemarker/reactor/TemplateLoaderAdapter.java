@@ -17,17 +17,16 @@ final class TemplateLoaderAdapter implements TemplateLoader {
     @Override
     public Object findTemplateSource(String name) {
         Matcher matcher = localePattern.matcher(name);
-        if (!matcher.matches()) {
-            return load(name);
-        }
-        return load(matcher.group(1));
+        return matcher.matches()
+                ? load(matcher.group(1))
+                : load(name);
     }
 
     private String load(String name) {
         TemplateResolutionContext context = TemplateResolutionContext.getFromThreadLocal();
-        TemplateKey key = context.getResolvedTemplate().withName(name);
+        TemplateKey key = context.getDependentTemplate().withName(name);
         String result = context.getLoaded(key).getContent();
-        logger.info("Resolving dependency: {} {} for {}\n{}", name, key, context.getResolvedTemplate(), result);
+        logger.trace("Loading dependency {} for {}\n{}", key, context.getDependentTemplate(), result);
         return result;
     }
 

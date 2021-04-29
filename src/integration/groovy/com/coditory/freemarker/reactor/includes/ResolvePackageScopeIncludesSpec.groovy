@@ -18,8 +18,8 @@ class ResolvePackageScopeIncludesSpec extends Specification implements Processes
             processTemplate("invalid-include")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
-            e.message == "Could not resolve template: 'invalid-include'"
-            e.cause.message == "Detected dependency to package scope template: invalid-include -> x/_a"
+            e.message == "Could not resolve template 'invalid-include'"
+            e.cause.message == "Detected dependency to package scope template: 'invalid-include' -> 'x/_a'"
     }
 
     def "should resolve package scope include that does not violate the scope"() {

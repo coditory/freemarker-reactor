@@ -3,15 +3,10 @@ package com.coditory.freemarker.reactor.loader;
 import com.coditory.freemarker.reactor.TemplateKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 
 public final class ReactiveFreeMarkerFileLoader implements ReactiveFreeMarkerTemplateLoader {
@@ -33,10 +28,10 @@ public final class ReactiveFreeMarkerFileLoader implements ReactiveFreeMarkerTem
         Path path = generateFileName(key);
         return Mono.just(path)
                 .flatMap(this::loadTemplate)
-                .onErrorMap(it -> new TemplateLoadingException("Could not load template: '" + key + "' from file: " + path, it))
-                .doOnNext(it -> logger.debug("Loaded template: " + key + "', path: " + path))
+                .onErrorMap(it -> new TemplateLoadingException("Could not load template " + key + " from " + path, it))
+                .doOnNext(it -> logger.trace("Loaded template {} from file {}", key, path))
                 .switchIfEmpty(Mono.defer(() -> {
-                    logger.debug("Could not find template: " + key + "'. Checked path: " + path);
+                    logger.trace("Could not find template {} file: {}", key, path);
                     return Mono.empty();
                 }));
     }

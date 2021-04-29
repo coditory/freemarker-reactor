@@ -26,13 +26,32 @@ final class TemplateLoader {
 
     Mono<ResolvedTemplate> loadTemplate(TemplateKey key) {
         List<TemplateKey> keys = generateTemplateKeys(key);
-        logger.debug("Looking for template {} with alternative keys {}", key, keys);
+        if (keys.size() > 1) {
+            logger.trace("Looking for template {} with alternative keys {}", key, keys);
+        } else {
+            logger.trace("Looking for template {}", key);
+        }
         return Flux.fromIterable(keys)
                 .flatMapSequential(this::loadTemplateAndWrap)
                 .next()
+                .doOnNext(it -> logLoadedTemplate(key, it))
                 .switchIfEmpty(Mono.defer(() ->
-                        Mono.error(new TemplateLoadingException("Missing template: '" + key + "'")))
+                        Mono.error(new TemplateLoadingException("Missing template " + key)))
                 );
+    }
+
+    private void logLoadedTemplate(TemplateKey key, ResolvedTemplate resolvedTemplate) {
+        if (!logger.isTraceEnabled() && !logger.isDebugEnabled()) {
+            return;
+        }
+        String message = key.equals(resolvedTemplate.getKey())
+                ? "Loaded template " + key
+                : "Loaded template " + key + " from alternative key " + resolvedTemplate.getKey();
+        if (logger.isTraceEnabled()) {
+            logger.trace(message + "\n" + resolvedTemplate.getContent());
+        } else {
+            logger.debug(message);
+        }
     }
 
     private Mono<ResolvedTemplate> loadTemplateAndWrap(TemplateKey key) {

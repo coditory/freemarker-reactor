@@ -34,39 +34,42 @@ final class TemplateResolutionContext implements TemplateModel {
     }
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final TemplateKey templateKey;
+    private final TemplateKey rootTemplateKey;
+    private final AtomicReference<TemplateKey> dependentTemplate = new AtomicReference<>();
     private final Map<TemplateKey, Set<TemplateKey>> dependencies = new ConcurrentHashMap<>();
     private final Map<TemplateKey, ResolvedTemplate> resolved = new ConcurrentHashMap<>();
-    private final AtomicReference<TemplateKey> resolvedTemplate = new AtomicReference<>();
     private final Set<TemplateKey> unresolved = ConcurrentHashMap.newKeySet();
 
     TemplateResolutionContext(TemplateKey templateKey) {
-        this.templateKey = templateKey;
-        this.resolvedTemplate.set(templateKey);
+        this.rootTemplateKey = templateKey;
+        this.dependentTemplate.set(templateKey);
     }
 
-    public TemplateKey getTemplateKey() {
-        return templateKey;
+    TemplateKey resolveTemplateKey(String templateName) {
+        TemplateKey parent = getDependentTemplate();
+        TemplateKey templateKey = parent.withName(templateName);
+        return isLoaded(templateKey)
+                ? getResolvedTemplate(templateKey)
+                : templateKey;
     }
 
-    public TemplateKey getResolvedTemplate() {
-        TemplateKey key = resolvedTemplate.get();
+    TemplateKey getDependentTemplate() {
+        TemplateKey key = dependentTemplate.get();
         ResolvedTemplate resolvedTemplate = resolved.get(key);
         return resolvedTemplate != null
                 ? resolvedTemplate.getKey()
                 : key;
     }
 
-    public TemplateKey getResolvedTemplate(TemplateKey key) {
+    void setDependentTemplate(TemplateKey templateKey) {
+        dependentTemplate.set(templateKey);
+    }
+
+    TemplateKey getResolvedTemplate(TemplateKey key) {
         ResolvedTemplate resolvedTemplate = resolved.get(key);
         return resolvedTemplate != null
                 ? resolvedTemplate.getKey()
                 : null;
-    }
-
-    public void setResolvedTemplate(TemplateKey templateKey) {
-        logger.info("Setting resolved template: " + templateKey + ". Previous: " + resolvedTemplate.get());
-        resolvedTemplate.set(templateKey);
     }
 
     void addResolvedDependency(TemplateKey templateKey, ResolvedTemplate resolvedTemplate) {
@@ -92,7 +95,7 @@ final class TemplateResolutionContext implements TemplateModel {
         return unresolved.isEmpty();
     }
 
-    void validateDependency(TemplateKey templateKey, TemplateKey dependency) {
+    private void validateDependency(TemplateKey templateKey, TemplateKey dependency) {
         if (!dependency.isAccessibleFrom(templateKey)) {
             throw new TemplateResolutionException("Detected dependency to package scope template: " +
                     templateKey + " -> " + dependency);
@@ -109,7 +112,7 @@ final class TemplateResolutionContext implements TemplateModel {
             return;
         }
         unresolved.add(dependencyKey);
-        logger.info("Added dependency: " + templateKey + " -> " + dependencyKey);
+        logger.trace("Added dependency: " + templateKey + " -> " + dependencyKey);
         dependencies.compute(templateKey, (key, value) -> {
             Set<TemplateKey> values = value == null ? new HashSet<>() : value;
             values.add(dependencyKey);

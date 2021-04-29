@@ -26,7 +26,7 @@ final class IncludeDirective implements TemplateDirective {
             TemplateDirectiveBody body
     ) throws TemplateException {
         TemplateResolutionContext context = TemplateResolutionContext.getFromThreadLocal();
-        TemplateKey templateKey = resolveTemplateKey(env, context);
+        TemplateKey templateKey = context.resolveTemplateKey(env.getCurrentTemplate().getName());
         TemplateKey includeKey = getInclude(templateKey, env, params, positional);
         boolean parse = getNamedBooleanParamOrTrue(env, params, "parse");
         boolean optional = getNamedBooleanParamOrTrue(env, params, "required");
@@ -34,30 +34,22 @@ final class IncludeDirective implements TemplateDirective {
         if (context.isLoaded(includeKey)) {
             Template includedTemplate;
             try {
-                TemplateKey parent = context.getResolvedTemplate();
-                context.setResolvedTemplate(templateKey);
-                logger.debug("Including template to {}: {}", templateKey.getName(), includeKey.getName());
+                TemplateKey parent = context.getDependentTemplate();
+                context.setDependentTemplate(templateKey);
                 includedTemplate = env.getTemplateForInclusion(includeKey.getName(), null, parse, optional);
-                context.setResolvedTemplate(parent);
+                logger.debug("Included template {} into {}", includeKey, templateKey);
+                context.setDependentTemplate(parent);
                 if (includedTemplate != null) {
                     env.include(includedTemplate);
                 }
             } catch (IOException e) {
                 throw new _MiscTemplateException(
                         e, env,
-                        "Could not include template:" + includeKey.getName() + ":\n",
+                        "Could not include template:" + includeKey + ":\n",
                         e.getMessage()
                 );
             }
         }
-    }
-
-    private TemplateKey resolveTemplateKey(Environment env, TemplateResolutionContext context) {
-        String sourceTemplateName = env.getCurrentTemplate().getName();
-        TemplateKey parent = context.getResolvedTemplate();
-        return context.isLoaded(parent.withName(sourceTemplateName))
-                ? context.getResolvedTemplate(parent.withName(sourceTemplateName))
-                : parent.withName(sourceTemplateName);
     }
 
     private TemplateKey getInclude(

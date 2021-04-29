@@ -3,7 +3,6 @@ package com.coditory.freemarker.reactor.loader;
 import com.coditory.freemarker.reactor.TemplateKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
@@ -15,12 +14,8 @@ import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Stream;
 
 public final class ReactiveFreeMarkerClasspathLoader implements ReactiveFreeMarkerTemplateLoader {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -47,10 +42,10 @@ public final class ReactiveFreeMarkerClasspathLoader implements ReactiveFreeMark
         Path path = generateFileName(key);
         return Mono.just(path)
                 .flatMap(this::loadTemplate)
-                .onErrorMap(it -> new TemplateLoadingException("Could not load template from classpath: '" + key + "' from: " + path, it))
-                .doOnNext(it -> logger.debug("Loaded template from classpath: " + key + "', path: " + path))
+                .onErrorMap(it -> new TemplateLoadingException("Could not load template " + key + " from classpath: " + path, it))
+                .doOnNext(it -> logger.trace("Loaded template {} from classpath {}", key, path))
                 .switchIfEmpty(Mono.defer(() -> {
-                    logger.debug("Could not find template on classpath: " + key + "'. Checked path: " + path);
+                    logger.trace("Could not find template {} on classpath: {}", key, path);
                     return Mono.empty();
                 }));
     }

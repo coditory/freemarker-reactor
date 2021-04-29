@@ -24,33 +24,25 @@ final class ImportDirective implements TemplateDirective {
             TemplateDirectiveBody body
     ) throws TemplateException {
         TemplateResolutionContext context = TemplateResolutionContext.getFromThreadLocal();
-        TemplateKey templateKey = resolveTemplateKey(env, context);
+        TemplateKey templateKey = context.resolveTemplateKey(env.getCurrentTemplate().getName());
         TemplateKey importKey = getImport(templateKey, env, params, positional);
         String importNameSpace = getImportNameSpace(importKey, params, positional);
         context.addDependency(templateKey, importKey);
         if (context.isLoaded(importKey)) {
             try {
-                TemplateKey parent = context.getResolvedTemplate();
-                context.setResolvedTemplate(templateKey);
-                logger.debug("Importing template to {}: {} as {}", templateKey.getName(), importKey.getName(), importNameSpace);
+                TemplateKey parent = context.getDependentTemplate();
+                context.setDependentTemplate(templateKey);
                 env.importLib(importKey.getName(), importNameSpace);
-                context.setResolvedTemplate(parent);
+                logger.debug("Imported template {} as '{}' into {}", importKey, importNameSpace, templateKey);
+                context.setDependentTemplate(parent);
             } catch (IOException e) {
                 throw new _MiscTemplateException(
                         e, env,
-                        "Could not import template: " + importKey.getName() + ":\n",
+                        "Could not import template: " + importKey + ":\n",
                         e.getMessage()
                 );
             }
         }
-    }
-
-    private TemplateKey resolveTemplateKey(Environment env, TemplateResolutionContext context) {
-        String sourceTemplateName = env.getCurrentTemplate().getName();
-        TemplateKey parent = context.getResolvedTemplate();
-        return context.isLoaded(parent.withName(sourceTemplateName))
-                ? context.getResolvedTemplate(parent.withName(sourceTemplateName))
-                : parent.withName(sourceTemplateName);
     }
 
     private TemplateKey getImport(

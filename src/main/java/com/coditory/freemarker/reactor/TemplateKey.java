@@ -28,7 +28,7 @@ public final class TemplateKey {
             return false;
         }
         int i = 0;
-        while(i < parts.length - 1 && parts[i].equals(otherParts[i])) {
+        while (i < parts.length - 1 && parts[i].equals(otherParts[i])) {
             ++i;
         }
         return i == parts.length - 1;
@@ -47,14 +47,6 @@ public final class TemplateKey {
         return withName(resolved);
     }
 
-    public TemplateKey withNamespace(String namespace) {
-        return new TemplateKey(namespace, name, locale);
-    }
-
-    public TemplateKey withName(String name) {
-        return new TemplateKey(namespace, name, locale);
-    }
-
     public String getName() {
         return name;
     }
@@ -67,8 +59,22 @@ public final class TemplateKey {
         return locale;
     }
 
+    public TemplateKey withNamespace(String namespace) {
+        return Objects.equals(this.namespace, namespace)
+                ? this
+                : new TemplateKey(namespace, name, locale);
+    }
+
+    public TemplateKey withName(String name) {
+        return Objects.equals(this.name, name)
+                ? this
+                : new TemplateKey(namespace, name, locale);
+    }
+
     public TemplateKey withLocale(Locale locale) {
-        return new TemplateKey(namespace, name, locale);
+        return Objects.equals(this.locale, locale)
+                ? this
+                : new TemplateKey(namespace, name, locale);
     }
 
     public boolean hasLocale() {
@@ -93,18 +99,27 @@ public final class TemplateKey {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
+        builder.append("'");
         builder.append(name);
+        builder.append("'");
+        if (namespace != null || locale != null) {
+            builder.append("(");
+        }
         if (namespace != null) {
             builder
-                    .append(":")
-                    .append(namespace)
-                    .reverse();
+                    .append("ns:")
+                    .append(namespace);
         }
         if (locale != null) {
+            if (namespace != null) {
+                builder.append(", ");
+            }
             builder
-                    .append("(")
-                    .append(locale)
-                    .append(")");
+                    .append("locale:")
+                    .append(locale);
+        }
+        if (namespace != null || locale != null) {
+            builder.append(")");
         }
         return builder.toString();
     }
