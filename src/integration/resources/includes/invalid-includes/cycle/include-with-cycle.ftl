@@ -1,2 +1,2 @@
 Template: include-with-cycle
-<@include name="./a" />
+<@include "./a" />

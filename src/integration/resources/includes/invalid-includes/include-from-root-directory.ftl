@@ -1,2 +1,2 @@
 Template: include-from-root-directory
-<@include name="/abc" />
+<@include "/abc" />

@@ -1,2 +1,2 @@
 Template: missing-include
-<@include name="missing-123" />
+<@include "missing-123" />

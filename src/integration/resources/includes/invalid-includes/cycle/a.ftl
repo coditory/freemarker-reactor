@@ -1,2 +1,2 @@
 Template: a
-<@include name="./b" />
+<@include "./b" />

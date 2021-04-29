@@ -1,2 +1,2 @@
 Template: missing-transitive-include
-<@include name="missing-include" />
+<@include "missing-include" />

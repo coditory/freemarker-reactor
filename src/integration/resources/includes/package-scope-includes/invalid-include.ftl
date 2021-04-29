@@ -1,2 +1,2 @@
 Template: invalid-include
-<@include name="./x/_a" />
+<@include "./x/_a" />

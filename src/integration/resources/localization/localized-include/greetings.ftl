@@ -1,2 +1,2 @@
 Template: greetings
-<@include name="./a" />
+<@include "./a" />

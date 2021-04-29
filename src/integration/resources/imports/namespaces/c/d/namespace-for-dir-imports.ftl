@@ -1,5 +1,5 @@
-<@import name="./.." />
-<@import name="./" />
+<@import "./.." />
+<@import "./" />
 Template: namespace-for-dir-imports
-<@c.hello name="John" />
-<@d.hello name="Jack" />
+<@c.hello "John" />
+<@d.hello "Jack" />

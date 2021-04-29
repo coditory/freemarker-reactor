@@ -1,2 +1,2 @@
 Template: include-self
-<@include name="./include-self" />
+<@include "./include-self" />

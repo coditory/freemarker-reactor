@@ -1,2 +1,2 @@
 Template: c
-<@include name="./a" />
+<@include "./a" />

@@ -1,6 +1,6 @@
-<@import name="a" />
-<@import name="b" />
-<@import name="c" />
+<@import "a" />
+<@import "b" />
+<@import "c" />
 Template: import-without-namespace
 <@a.hello name="Jack" />
 <@b.hello name="John" />

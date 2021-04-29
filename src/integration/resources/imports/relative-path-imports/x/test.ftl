@@ -1,7 +1,7 @@
-<@import name="../a" ns="a" />
-<@import name="./b" ns="b" />
-<@import name="./y/c" ns="c" />
-<@import name="../x/y/../b" ns="b2" />
+<@import "../a" />
+<@import "./b" />
+<@import "./y/c" />
+<@import "../x/y/../b" "b2" />
 Template with relative imports
 <@a.ma />
 <@b.mb />

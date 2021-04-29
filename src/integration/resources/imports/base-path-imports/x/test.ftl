@@ -1,6 +1,6 @@
-<@import name="a" ns="a" />
-<@import name="x/b" ns="b" />
-<@import name="x/y/c" ns="c" />
+<@import "a" />
+<@import "x/b" />
+<@import "x/y/c" />
 Template with base path imports
 <@a.ma />
 <@b.mb />

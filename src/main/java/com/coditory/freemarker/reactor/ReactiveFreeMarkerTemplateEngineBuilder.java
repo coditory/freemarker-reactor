@@ -244,8 +244,8 @@ public final class ReactiveFreeMarkerTemplateEngineBuilder {
     }
 
     public ReactiveFreeMarkerTemplateEngine build() {
-        configuration.setSharedVariable("include", new IncludeDirective());
-        configuration.setSharedVariable("import", new ImportDirective());
+        configuration.setSharedVariable("include", new TemplateDirectiveAdapter(new IncludeDirective()));
+        configuration.setSharedVariable("import", new TemplateDirectiveAdapter(new ImportDirective()));
         configuration.setTemplateLoader(new TemplateLoaderAdapter());
         TemplateLoader loader = new TemplateLoader(this.templateLoader, List.of());
         return new ReactiveFreeMarkerTemplateEngine(configuration, loader, defaultLocale);

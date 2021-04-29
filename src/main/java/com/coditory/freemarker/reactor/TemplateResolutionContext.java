@@ -104,6 +104,7 @@ final class TemplateResolutionContext implements TemplateModel {
     }
 
     void addDependency(TemplateKey templateKey, TemplateKey dependencyKey) {
+        validateDependency(templateKey, dependencyKey);
         if (resolved.containsKey(dependencyKey)) {
             return;
         }

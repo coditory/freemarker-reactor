@@ -1,4 +1,4 @@
 Template: b
 <#if c?? && c == true>
-<@include name="c" />
+<@include "c" />
 </#if>

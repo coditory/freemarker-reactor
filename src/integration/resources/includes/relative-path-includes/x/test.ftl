@@ -1,5 +1,5 @@
 Template with relative includes
-<@include name="../a" />
-<@include name="./b" />
-<@include name="./y/c" />
-<@include name="../x/y/../b" />
+<@include "../a" />
+<@include "./b" />
+<@include "./y/c" />
+<@include "../x/y/../b" />
