@@ -1,3 +1,3 @@
-<@import name="./a" />
+<@import "./a" />
 Template: import-with-cycle
 <@a.a />

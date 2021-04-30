@@ -73,4 +73,13 @@ class ThrowErrorOnInvalidImportsSpec extends Specification implements ProcessesT
             e.message == "Could not resolve template 'import-self'"
             e.cause.message == "Detected circular template dependency: 'import-self' <-> 'import-self'"
     }
+
+    def "should throw error on original import directive"() {
+        when:
+            processTemplate("original-import")
+        then:
+            TemplateResolutionException e = thrown(TemplateResolutionException)
+            e.message == "Could not resolve template 'original-import'"
+            e.cause.message == "Template dependency not recognized. Use reactive directives <@include ...>, <@import ...> instead of synchronous <#include ...>, <#import ...>"
+    }
 }

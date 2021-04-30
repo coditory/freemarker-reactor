@@ -1,9 +1,6 @@
 package com.coditory.freemarker.reactor;
 
 import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerClasspathLoader;
-import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerTemplateLoader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import reactor.blockhound.BlockHound;
 import reactor.tools.agent.ReactorDebugAgent;
 

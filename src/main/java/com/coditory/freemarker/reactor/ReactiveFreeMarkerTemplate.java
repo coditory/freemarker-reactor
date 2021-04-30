@@ -70,6 +70,10 @@ public final class ReactiveFreeMarkerTemplate {
     private Mono<TemplateKey> resolveDependency(TemplateResolutionContext context, TemplateKey templateKey) {
         return loader.loadTemplate(templateKey)
                 .doOnNext(resolved -> context.addResolvedDependency(templateKey, resolved))
+                .switchIfEmpty(Mono.defer(() -> {
+                    context.addMissingDependency(templateKey);
+                    return Mono.empty();
+                }))
                 .thenReturn(templateKey)
                 .onErrorMap(it -> new TemplateResolutionException(
                         "Could not resolve template " + key + ". Could not resolve template dependency " + templateKey, it));

@@ -2,8 +2,8 @@ package com.coditory.freemarker.reactor;
 
 import freemarker.core.Environment;
 import freemarker.core._MiscTemplateException;
-import freemarker.ext.beans.BooleanModel;
 import freemarker.template.Template;
+import freemarker.template.TemplateBooleanModel;
 import freemarker.template.TemplateDirectiveBody;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
@@ -89,13 +89,13 @@ final class IncludeDirective implements TemplateDirective {
         if (model == null) {
             return true;
         }
-        if (!(model instanceof BooleanModel)) {
+        if (!(model instanceof TemplateBooleanModel)) {
             throw new _MiscTemplateException(
                     env,
                     "Could not include directive parameter: " + name + ". Expected boolean value, got: " + model
             );
         }
-        BooleanModel booleanModel = (BooleanModel) model;
+        TemplateBooleanModel booleanModel = (TemplateBooleanModel) model;
         return booleanModel.getAsBoolean();
     }
 }

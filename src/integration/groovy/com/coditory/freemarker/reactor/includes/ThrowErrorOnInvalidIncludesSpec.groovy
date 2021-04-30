@@ -73,4 +73,13 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification implements Processes
             e.message == "Could not resolve template 'include-self'"
             e.cause.message == "Detected circular template dependency: 'include-self' <-> 'include-self'"
     }
+
+    def "should throw error on original include macro"() {
+        when:
+            processTemplate("original-include")
+        then:
+            TemplateResolutionException e = thrown(TemplateResolutionException)
+            e.message == "Could not resolve template 'original-include'"
+            e.cause.message == "Template dependency not recognized. Use reactive directives <@include ...>, <@import ...> instead of synchronous <#include ...>, <#import ...>"
+    }
 }

@@ -1,7 +1,12 @@
 package com.coditory.freemarker.reactor;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.regex.Pattern;
+
+import static com.coditory.freemarker.reactor.TemplateConstants.INDEX_FILE;
+import static com.coditory.freemarker.reactor.TemplateConstants.PROTECTED_TEMPLATE_PREFIX;
+import static com.coditory.freemarker.reactor.TemplateConstants.SEPARATOR;
 
 final class TemplateNameResolver {
     static final Pattern TEMPLATE_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9-_/.]+");
@@ -13,8 +18,8 @@ final class TemplateNameResolver {
         validateTemplateName(dependencyName);
         Path parent = resolveTemplatePath(templateName);
         Path resolved = parent.getNameCount() == 1
-                ? Path.of(dependencyName)
-                : parent.getParent().resolve(dependencyName);
+                ? Path.of(dependencyName.replace(SEPARATOR, File.separator))
+                : parent.getParent().resolve(dependencyName.replace(SEPARATOR, File.separator));
         return normalize(resolved, dependencyName);
     }
 
@@ -26,9 +31,9 @@ final class TemplateNameResolver {
     static String resolveTemplateBaseName(String templateName) {
         Path path = resolveTemplatePath(templateName);
         String result = normalize(path, templateName);
-        if (result.endsWith("/_index")) {
-            result = result.substring(0, result.length() - "/_index".length());
-        } else if (result.equals("_index")) {
+        if (result.endsWith(SEPARATOR + INDEX_FILE)) {
+            result = result.substring(0, result.length() - (SEPARATOR + INDEX_FILE).length());
+        } else if (result.equals(INDEX_FILE)) {
             throw new IllegalArgumentException("Template name '" + templateName + "' points to base path");
         }
         return result;
@@ -39,12 +44,14 @@ final class TemplateNameResolver {
         if (normalized.isAbsolute() || normalized.startsWith("..")) {
             throw new IllegalArgumentException("Template name '" + templateName + "' points outside of the base path");
         }
-        return normalized.toString().replace('\\', '/');
+        return normalized.toString()
+                .replace(File.separator, SEPARATOR);
     }
 
     private static Path resolveTemplatePath(String templateName) {
         validateTemplateName(templateName);
-        Path path = Path.of(templateName).normalize();
+        Path path = Path.of(templateName.replace(SEPARATOR, File.separator))
+                .normalize();
         if (path.isAbsolute() || path.startsWith("..")) {
             throw new IllegalArgumentException("Template name '" + templateName + "' points outside of the base path");
         }
@@ -56,12 +63,18 @@ final class TemplateNameResolver {
             throw new IllegalArgumentException("Invalid character in template name: '" + templateName + "'"
                     + ". Template name must comply: " + TEMPLATE_NAME_PATTERN.pattern());
         }
-        String[] parts = templateName.split("/");
+        if (templateName.contains("...")) {
+            throw new IllegalArgumentException("Invalid character sequence '...' in template: '" + templateName + "'");
+        }
+        if (templateName.contains(SEPARATOR + SEPARATOR)) {
+            throw new IllegalArgumentException("Invalid character sequence '" + SEPARATOR + SEPARATOR + "' in template: '" + templateName + "'");
+        }
+        String[] parts = templateName.split(SEPARATOR);
         for (int i = 0; i < parts.length; ++i) {
             String part = parts[i];
             if (i == parts.length - 1) {
-                if (part.length() > 1 && part.indexOf('_', 1) >= 0) {
-                    throw new IllegalArgumentException("Invalid character '_' in template name: '" + templateName + "'"
+                if (part.length() > 1 && part.indexOf(PROTECTED_TEMPLATE_PREFIX, 1) >= 0) {
+                    throw new IllegalArgumentException("Invalid character '" + PROTECTED_TEMPLATE_PREFIX + "' in template name: '" + templateName + "'"
                             + ". Use '-' instead.");
                 }
             }

@@ -25,6 +25,18 @@ final class TemplateLoaderAdapter implements TemplateLoader {
     private String load(String name) {
         TemplateResolutionContext context = TemplateResolutionContext.getFromThreadLocal();
         TemplateKey key = context.getDependentTemplate().withName(name);
+        if (!context.isRegistered(key)) {
+            throw new TemplateResolutionException(
+                    "Template dependency not recognized. " +
+                            "Use reactive directives <@include ...>, <@import ...> instead of " +
+                            "synchronous <#include ...>, <#import ...>"
+            );
+        }
+        ResolvedTemplate resolvedTemplate = context.getLoaded(key);
+        if (resolvedTemplate == null) {
+            logger.trace("Missing dependency {} for {}", key, context.getDependentTemplate());
+            return null;
+        }
         String result = context.getLoaded(key).getContent();
         logger.trace("Loading dependency {} for {}\n{}", key, context.getDependentTemplate(), result);
         return result;

@@ -1,4 +1,4 @@
-<@import name="./c" />
+<@import "./c" />
 <#macro b>
 Template: cycle/b
 <@c.c />

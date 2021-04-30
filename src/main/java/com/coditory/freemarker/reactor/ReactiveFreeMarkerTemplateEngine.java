@@ -56,6 +56,7 @@ public final class ReactiveFreeMarkerTemplateEngine {
                 .map(resolved -> createTemplate(key, resolved));
     }
 
+    @SuppressWarnings("deprecation")
     private ReactiveFreeMarkerTemplate createTemplate(TemplateKey key, ResolvedTemplate resolved) {
         try {
             Template template = new Template(key.getName(), resolved.getContent(), configuration);
@@ -64,7 +65,7 @@ public final class ReactiveFreeMarkerTemplateEngine {
             }
             return new ReactiveFreeMarkerTemplate(key, template, loader);
         } catch (Exception e) {
-            throw new TemplateCreationException("Could not create template: '" + key + "'", e);
+            throw new TemplateCreationException("Could not create template " + key, e);
         }
     }
 }

@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.stream.Collectors.toSet;
+import static java.util.Collections.unmodifiableSet;
 
 final class TemplateResolutionContext implements TemplateModel {
     private static final ThreadLocal<TemplateResolutionContext> THREAD_CONTEXT = new ThreadLocal<>();
@@ -39,6 +39,7 @@ final class TemplateResolutionContext implements TemplateModel {
     private final Map<TemplateKey, Set<TemplateKey>> dependencies = new ConcurrentHashMap<>();
     private final Map<TemplateKey, ResolvedTemplate> resolved = new ConcurrentHashMap<>();
     private final Set<TemplateKey> unresolved = ConcurrentHashMap.newKeySet();
+    private final Set<TemplateKey> missing = ConcurrentHashMap.newKeySet();
 
     TemplateResolutionContext(TemplateKey templateKey) {
         this.rootTemplateKey = templateKey;
@@ -61,6 +62,12 @@ final class TemplateResolutionContext implements TemplateModel {
                 : key;
     }
 
+    boolean isRegistered(TemplateKey templateKey) {
+        return unresolved.contains(templateKey)
+                || resolved.containsKey(templateKey)
+                || missing.contains(templateKey);
+    }
+
     void setDependentTemplate(TemplateKey templateKey) {
         dependentTemplate.set(templateKey);
     }
@@ -74,7 +81,9 @@ final class TemplateResolutionContext implements TemplateModel {
 
     void addResolvedDependency(TemplateKey templateKey, ResolvedTemplate resolvedTemplate) {
         unresolved.remove(templateKey);
+        unresolved.remove(resolvedTemplate.getKey());
         resolved.put(templateKey, resolvedTemplate);
+        resolved.put(resolvedTemplate.getKey(), resolvedTemplate);
     }
 
     boolean isLoaded(TemplateKey templateKey) {
@@ -86,9 +95,7 @@ final class TemplateResolutionContext implements TemplateModel {
     }
 
     Set<TemplateKey> getUnresolvedDependencies() {
-        return unresolved.stream()
-                .filter(it -> !resolved.containsKey(it))
-                .collect(toSet());
+        return unmodifiableSet(unresolved);
     }
 
     boolean allDependenciesLoaded() {
@@ -108,7 +115,7 @@ final class TemplateResolutionContext implements TemplateModel {
 
     void addDependency(TemplateKey templateKey, TemplateKey dependencyKey) {
         validateDependency(templateKey, dependencyKey);
-        if (resolved.containsKey(dependencyKey)) {
+        if (resolved.containsKey(dependencyKey) || missing.contains(dependencyKey)) {
             return;
         }
         unresolved.add(dependencyKey);
@@ -144,5 +151,10 @@ final class TemplateResolutionContext implements TemplateModel {
             }
         }
         return result;
+    }
+
+    public void addMissingDependency(TemplateKey templateKey) {
+        unresolved.remove(templateKey);
+        missing.add(templateKey);
     }
 }

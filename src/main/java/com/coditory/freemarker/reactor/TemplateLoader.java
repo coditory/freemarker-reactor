@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
+import static com.coditory.freemarker.reactor.TemplateConstants.INDEX_FILE;
+import static com.coditory.freemarker.reactor.TemplateConstants.SEPARATOR;
 import static java.util.stream.Collectors.toList;
 
 final class TemplateLoader {
@@ -26,18 +28,14 @@ final class TemplateLoader {
 
     Mono<ResolvedTemplate> loadTemplate(TemplateKey key) {
         List<TemplateKey> keys = generateTemplateKeys(key);
-        if (keys.size() > 1) {
-            logger.trace("Looking for template {} with alternative keys {}", key, keys);
-        } else {
-            logger.trace("Looking for template {}", key);
-        }
         return Flux.fromIterable(keys)
                 .flatMapSequential(this::loadTemplateAndWrap)
                 .next()
                 .doOnNext(it -> logLoadedTemplate(key, it))
-                .switchIfEmpty(Mono.defer(() ->
-                        Mono.error(new TemplateLoadingException("Missing template " + key)))
-                );
+                .switchIfEmpty(Mono.defer(() -> {
+                    logMissingTemplate(key, keys);
+                    return Mono.empty();
+                }));
     }
 
     private void logLoadedTemplate(TemplateKey key, ResolvedTemplate resolvedTemplate) {
@@ -51,6 +49,17 @@ final class TemplateLoader {
             logger.trace(message + "\n" + resolvedTemplate.getContent());
         } else {
             logger.debug(message);
+        }
+    }
+
+    private void logMissingTemplate(TemplateKey key, List<TemplateKey> alternatives) {
+        if (!logger.isTraceEnabled() && !logger.isDebugEnabled()) {
+            return;
+        }
+        if (alternatives.size() > 1) {
+            logger.debug("Missing template {} with alternative keys {}", key, alternatives);
+        } else {
+            logger.debug("Missing template {}", key);
         }
     }
 
@@ -76,7 +85,7 @@ final class TemplateLoader {
     }
 
     private Stream<TemplateKey> generateKeysFromIndexes(TemplateKey key) {
-        String nameWithIndex = key.getName() + "/_index";
+        String nameWithIndex = key.getName() + SEPARATOR + INDEX_FILE;
         return Stream.of(key, key.withName(nameWithIndex));
     }
 

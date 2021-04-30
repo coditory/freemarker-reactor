@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static com.coditory.freemarker.reactor.TemplateConstants.PROTECTED_TEMPLATE_PREFIX;
+import static com.coditory.freemarker.reactor.TemplateConstants.SEPARATOR;
+
 final class ImportDirective implements TemplateDirective {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -83,17 +86,17 @@ final class ImportDirective implements TemplateDirective {
             return namedParam.toString();
         }
         String value = positional.size() < 2 || positional.get(1) == null
-                ? "*"
+                ? ""
                 : positional.get(1).toString();
-        return value.equals("*")
+        return value == null || value.isBlank()
                 ? getNamespaceFromTemplateName(templateKey)
                 : value;
     }
 
     private String getNamespaceFromTemplateName(TemplateKey templateKey) {
-        String[] parts = templateKey.getTemplateBaseName().split("/");
+        String[] parts = templateKey.getTemplateBaseName().split(SEPARATOR);
         String last = parts[parts.length - 1];
-        return last.startsWith("_")
+        return last.startsWith(PROTECTED_TEMPLATE_PREFIX)
                 ? last.substring(1)
                 : last;
     }

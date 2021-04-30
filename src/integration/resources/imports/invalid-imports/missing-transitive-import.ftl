@@ -1,2 +1,2 @@
-<@import name="missing-import" />
+<@import "missing-import" />
 Template: missing-transitive-import
