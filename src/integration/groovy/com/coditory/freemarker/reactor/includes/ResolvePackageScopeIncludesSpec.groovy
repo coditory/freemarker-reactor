@@ -1,16 +1,16 @@
 package com.coditory.freemarker.reactor.includes
 
-import com.coditory.freemarker.reactor.ReactiveFreeMarkerTemplateEngine
+import com.coditory.freemarker.reactor.TemplateEngine
 import com.coditory.freemarker.reactor.TemplateResolutionException
 import com.coditory.freemarker.reactor.base.ProcessesTemplate
-import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerClasspathLoader
+import com.coditory.freemarker.reactor.loader.ClasspathTemplateLoader
 import spock.lang.Specification
 
 import static com.coditory.freemarker.reactor.base.MultilineString.multiline
 
 class ResolvePackageScopeIncludesSpec extends Specification implements ProcessesTemplate {
-    ReactiveFreeMarkerTemplateEngine engine = ReactiveFreeMarkerTemplateEngine.builder()
-            .setTemplateLoader(new ReactiveFreeMarkerClasspathLoader("includes/package-scope-includes"))
+    TemplateEngine engine = TemplateEngine.builder()
+            .setTemplateLoader(new ClasspathTemplateLoader("includes/package-scope-includes"))
             .build()
 
     def "should throw error when including private template from other directory"() {

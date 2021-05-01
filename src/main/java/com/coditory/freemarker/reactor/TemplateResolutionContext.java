@@ -1,5 +1,6 @@
 package com.coditory.freemarker.reactor;
 
+import freemarker.core.Environment;
 import freemarker.template.TemplateModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.unmodifiableSet;
+import static java.util.Objects.requireNonNull;
 
 final class TemplateResolutionContext implements TemplateModel {
     private static final ThreadLocal<TemplateResolutionContext> THREAD_CONTEXT = new ThreadLocal<>();
@@ -34,72 +36,113 @@ final class TemplateResolutionContext implements TemplateModel {
     }
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final TemplateKey rootTemplateKey;
-    private final AtomicReference<TemplateKey> dependentTemplate = new AtomicReference<>();
+    private final AtomicReference<TemplateKey> parentTemplate = new AtomicReference<>();
     private final Map<TemplateKey, Set<TemplateKey>> dependencies = new ConcurrentHashMap<>();
     private final Map<TemplateKey, ResolvedTemplate> resolved = new ConcurrentHashMap<>();
     private final Set<TemplateKey> unresolved = ConcurrentHashMap.newKeySet();
     private final Set<TemplateKey> missing = ConcurrentHashMap.newKeySet();
 
-    TemplateResolutionContext(TemplateKey templateKey) {
-        this.rootTemplateKey = templateKey;
-        this.dependentTemplate.set(templateKey);
+    TemplateResolutionContext(TemplateKey mainTemplateKey, ResolvedTemplate resolvedTemplate) {
+        TemplateKey mainTemplateKeyWithOutLocale = mainTemplateKey.withNoLocale();
+        this.parentTemplate.set(mainTemplateKeyWithOutLocale);
+        addResolvedDependency(mainTemplateKeyWithOutLocale, resolvedTemplate);
     }
 
-    TemplateKey resolveTemplateKey(String templateName) {
-        TemplateKey parent = getDependentTemplate();
-        TemplateKey templateKey = parent.withName(templateName);
-        return isLoaded(templateKey)
-                ? getResolvedTemplate(templateKey)
-                : templateKey;
+    TemplateKey getCurrentTemplate(Environment env) {
+        requireNonNull(env);
+        String templateName = env.getCurrentTemplate().getName();
+        TemplateKey templateKey = toMinimalTemplateKey(templateName);
+        if (!isResolved(templateKey)) {
+            throw new IllegalStateException("Expected " + templateKey + " to be resolved");
+        }
+        return resolved.get(templateKey).getKey();
     }
 
-    TemplateKey getDependentTemplate() {
-        TemplateKey key = dependentTemplate.get();
-        ResolvedTemplate resolvedTemplate = resolved.get(key);
-        return resolvedTemplate != null
-                ? resolvedTemplate.getKey()
-                : key;
+    TemplateKey getParentTemplate() {
+        return parentTemplate.get();
+    }
+
+    void setParentTemplate(TemplateKey templateKey) {
+        requireNonNull(templateKey);
+        parentTemplate.set(templateKey.withNoLocale());
+    }
+
+    private TemplateKey toMinimalTemplateKey(String templateName) {
+        TemplateKey key = getParentTemplate().withName(templateName);
+        return toMinimalTemplateKey(key);
+    }
+
+    private TemplateKey toMinimalTemplateKey(TemplateKey key) {
+        return key.isScoped()
+                ? key.withNoLocale()
+                : key.withNoLocale().withNoModule();
     }
 
     boolean isRegistered(TemplateKey templateKey) {
-        return unresolved.contains(templateKey)
-                || resolved.containsKey(templateKey)
-                || missing.contains(templateKey);
-    }
-
-    void setDependentTemplate(TemplateKey templateKey) {
-        dependentTemplate.set(templateKey);
-    }
-
-    TemplateKey getResolvedTemplate(TemplateKey key) {
-        ResolvedTemplate resolvedTemplate = resolved.get(key);
-        return resolvedTemplate != null
-                ? resolvedTemplate.getKey()
-                : null;
+        requireNonNull(templateKey);
+        TemplateKey key = toMinimalTemplateKey(templateKey);
+        return unresolved.contains(key)
+                || resolved.containsKey(key)
+                || missing.contains(key);
     }
 
     void addResolvedDependency(TemplateKey templateKey, ResolvedTemplate resolvedTemplate) {
-        unresolved.remove(templateKey);
-        unresolved.remove(resolvedTemplate.getKey());
-        resolved.put(templateKey, resolvedTemplate);
-        resolved.put(resolvedTemplate.getKey(), resolvedTemplate);
+        requireNonNull(templateKey);
+        requireNonNull(resolvedTemplate);
+        TemplateKey minTemplateKey = toMinimalTemplateKey(templateKey);
+        unresolved.remove(minTemplateKey);
+        resolved.put(minTemplateKey, resolvedTemplate);
     }
 
-    boolean isLoaded(TemplateKey templateKey) {
-        return resolved.containsKey(templateKey);
+    public void addMissingDependency(TemplateKey templateKey) {
+        requireNonNull(templateKey);
+        TemplateKey minTemplateKey = toMinimalTemplateKey(templateKey);
+        unresolved.remove(minTemplateKey);
+        missing.add(minTemplateKey);
     }
 
-    ResolvedTemplate getLoaded(TemplateKey templateKey) {
-        return resolved.get(templateKey);
+    boolean isResolved(TemplateKey templateKey) {
+        requireNonNull(templateKey);
+        TemplateKey minTemplateKey = toMinimalTemplateKey(templateKey);
+        return resolved.containsKey(minTemplateKey);
+    }
+
+    boolean isMissing(TemplateKey templateKey) {
+        requireNonNull(templateKey);
+        TemplateKey minTemplateKey = toMinimalTemplateKey(templateKey);
+        return missing.contains(minTemplateKey);
+    }
+
+    ResolvedTemplate getResolved(TemplateKey templateKey) {
+        requireNonNull(templateKey);
+        TemplateKey minTemplateKey = toMinimalTemplateKey(templateKey);
+        return resolved.get(minTemplateKey);
     }
 
     Set<TemplateKey> getUnresolvedDependencies() {
         return unmodifiableSet(unresolved);
     }
 
-    boolean allDependenciesLoaded() {
-        return unresolved.isEmpty();
+    boolean hasUnresolvedDependencies() {
+        return !unresolved.isEmpty();
+    }
+
+    void addDependency(TemplateKey templateKey, TemplateKey dependencyKey) {
+        requireNonNull(templateKey);
+        requireNonNull(dependencyKey);
+        TemplateKey minTemplateKey = toMinimalTemplateKey(templateKey);
+        TemplateKey minDependencyKey = toMinimalTemplateKey(dependencyKey);
+        validateDependency(minTemplateKey, minDependencyKey);
+        if (resolved.containsKey(minDependencyKey) || missing.contains(minDependencyKey)) {
+            return;
+        }
+        unresolved.add(minDependencyKey);
+        logger.trace("Added dependency: " + minTemplateKey + " -> " + minDependencyKey);
+        dependencies.compute(minTemplateKey, (key, value) -> {
+            Set<TemplateKey> values = value == null ? new HashSet<>() : value;
+            values.add(minDependencyKey);
+            return values;
+        });
     }
 
     private void validateDependency(TemplateKey templateKey, TemplateKey dependency) {
@@ -111,20 +154,6 @@ final class TemplateResolutionContext implements TemplateModel {
             throw new TemplateResolutionException("Detected circular template dependency: " +
                     templateKey + " <-> " + dependency);
         }
-    }
-
-    void addDependency(TemplateKey templateKey, TemplateKey dependencyKey) {
-        validateDependency(templateKey, dependencyKey);
-        if (resolved.containsKey(dependencyKey) || missing.contains(dependencyKey)) {
-            return;
-        }
-        unresolved.add(dependencyKey);
-        logger.trace("Added dependency: " + templateKey + " -> " + dependencyKey);
-        dependencies.compute(templateKey, (key, value) -> {
-            Set<TemplateKey> values = value == null ? new HashSet<>() : value;
-            values.add(dependencyKey);
-            return values;
-        });
     }
 
     private boolean isCycle(TemplateKey templateKey, TemplateKey templateDependency) {
@@ -151,10 +180,5 @@ final class TemplateResolutionContext implements TemplateModel {
             }
         }
         return result;
-    }
-
-    public void addMissingDependency(TemplateKey templateKey) {
-        unresolved.remove(templateKey);
-        missing.add(templateKey);
     }
 }

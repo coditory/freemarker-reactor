@@ -3,17 +3,18 @@ package com.coditory.freemarker.reactor;
 import java.util.Locale;
 import java.util.Objects;
 
-import static com.coditory.freemarker.reactor.TemplateNameResolver.resolveTemplateBaseName;
-import static com.coditory.freemarker.reactor.TemplateNameResolver.resolveTemplateDependencyName;
-import static com.coditory.freemarker.reactor.TemplateNameResolver.resolveTemplateName;
+import static com.coditory.freemarker.reactor.TemplateConstants.SEPARATOR;
+import static com.coditory.freemarker.reactor.TemplateNames.resolveTemplateBaseName;
+import static com.coditory.freemarker.reactor.TemplateNames.resolveTemplateDependencyName;
+import static com.coditory.freemarker.reactor.TemplateNames.resolveTemplateName;
 
 public final class TemplateKey {
-    private final String namespace;
+    private final String module;
     private final String name;
     private final Locale locale;
 
-    public TemplateKey(String namespace, String name, Locale locale) {
-        this.namespace = namespace;
+    public TemplateKey(String module, String name, Locale locale) {
+        this.module = module;
         this.name = resolveTemplateName(name);
         this.locale = locale;
     }
@@ -22,8 +23,8 @@ public final class TemplateKey {
         if (!name.contains("_")) {
             return true;
         }
-        String[] otherParts = other.name.split("/");
-        String[] parts = name.split("/");
+        String[] otherParts = other.name.split(SEPARATOR);
+        String[] parts = name.split(SEPARATOR);
         if (parts.length != otherParts.length) {
             return false;
         }
@@ -34,12 +35,16 @@ public final class TemplateKey {
         return i == parts.length - 1;
     }
 
-    public String getNamespace() {
-        return namespace;
+    public boolean isScoped() {
+        return name.contains("_");
     }
 
-    public boolean hasNamespace() {
-        return namespace != null;
+    public String getModule() {
+        return module;
+    }
+
+    public boolean hasModule() {
+        return module != null;
     }
 
     public TemplateKey dependencyKey(String name) {
@@ -59,22 +64,30 @@ public final class TemplateKey {
         return locale;
     }
 
-    public TemplateKey withNamespace(String namespace) {
-        return Objects.equals(this.namespace, namespace)
+    public TemplateKey withModule(String module) {
+        return Objects.equals(this.module, module)
                 ? this
-                : new TemplateKey(namespace, name, locale);
+                : new TemplateKey(module, name, locale);
     }
 
     public TemplateKey withName(String name) {
         return Objects.equals(this.name, name)
                 ? this
-                : new TemplateKey(namespace, name, locale);
+                : new TemplateKey(module, name, locale);
     }
 
     public TemplateKey withLocale(Locale locale) {
         return Objects.equals(this.locale, locale)
                 ? this
-                : new TemplateKey(namespace, name, locale);
+                : new TemplateKey(module, name, locale);
+    }
+
+    public TemplateKey withNoLocale() {
+        return withLocale(null);
+    }
+
+    public TemplateKey withNoModule() {
+        return withModule(null);
     }
 
     public boolean hasLocale() {
@@ -86,40 +99,32 @@ public final class TemplateKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TemplateKey that = (TemplateKey) o;
-        return Objects.equals(namespace, that.namespace)
+        return Objects.equals(module, that.module)
                 && Objects.equals(name, that.name)
                 && Objects.equals(locale, that.locale);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(namespace, name, locale);
+        return Objects.hash(module, name, locale);
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("'");
+        if (module != null) {
+            builder
+                    .append(module)
+                    .append(":");
+        }
         builder.append(name);
         builder.append("'");
-        if (namespace != null || locale != null) {
-            builder.append("(");
-        }
-        if (namespace != null) {
-            builder
-                    .append("ns:")
-                    .append(namespace);
-        }
         if (locale != null) {
-            if (namespace != null) {
-                builder.append(", ");
-            }
             builder
-                    .append("locale:")
-                    .append(locale);
-        }
-        if (namespace != null || locale != null) {
-            builder.append(")");
+                    .append("(")
+                    .append(locale)
+                    .append(")");
         }
         return builder.toString();
     }

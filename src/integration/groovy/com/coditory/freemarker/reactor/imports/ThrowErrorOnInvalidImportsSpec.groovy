@@ -1,14 +1,14 @@
 package com.coditory.freemarker.reactor.imports
 
-import com.coditory.freemarker.reactor.ReactiveFreeMarkerTemplateEngine
+import com.coditory.freemarker.reactor.TemplateEngine
 import com.coditory.freemarker.reactor.TemplateResolutionException
 import com.coditory.freemarker.reactor.base.ProcessesTemplate
-import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerClasspathLoader
+import com.coditory.freemarker.reactor.loader.ClasspathTemplateLoader
 import spock.lang.Specification
 
 class ThrowErrorOnInvalidImportsSpec extends Specification implements ProcessesTemplate {
-    ReactiveFreeMarkerTemplateEngine engine = ReactiveFreeMarkerTemplateEngine.builder()
-            .setTemplateLoader(new ReactiveFreeMarkerClasspathLoader("imports/invalid-imports"))
+    TemplateEngine engine = TemplateEngine.builder()
+            .setTemplateLoader(new ClasspathTemplateLoader("imports/invalid-imports"))
             .build()
 
     def "should throw error on missing import"() {
@@ -16,8 +16,8 @@ class ThrowErrorOnInvalidImportsSpec extends Specification implements ProcessesT
             processTemplate("missing-import")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
-            e.message == "Could not resolve template 'missing-import'. Could not resolve template dependency 'missing-123'"
-            e.cause.message == "Missing template 'missing-123'"
+            e.message == "Could not resolve template 'missing-import'"
+            e.cause.message.startsWith("Missing template to import: 'missing-123'")
     }
 
     def "should throw error on missing transitive import"() {
@@ -25,8 +25,8 @@ class ThrowErrorOnInvalidImportsSpec extends Specification implements ProcessesT
             processTemplate("missing-transitive-import")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
-            e.message == "Could not resolve template 'missing-transitive-import'. Could not resolve template dependency 'missing-123'"
-            e.cause.message == "Missing template 'missing-123'"
+            e.message == "Could not resolve template 'missing-transitive-import'"
+            e.cause.message.startsWith("Missing template to import: 'missing-123'")
     }
 
     def "should throw error on import from root directory"() {

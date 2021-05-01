@@ -1,0 +1,1 @@
+Template: lorem/footer

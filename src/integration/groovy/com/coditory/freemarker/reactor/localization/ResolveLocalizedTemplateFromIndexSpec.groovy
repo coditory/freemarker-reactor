@@ -1,13 +1,13 @@
 package com.coditory.freemarker.reactor.localization
 
-import com.coditory.freemarker.reactor.ReactiveFreeMarkerTemplateEngine
+import com.coditory.freemarker.reactor.TemplateEngine
 import com.coditory.freemarker.reactor.base.ProcessesTemplate
-import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerClasspathLoader
+import com.coditory.freemarker.reactor.loader.ClasspathTemplateLoader
 import spock.lang.Specification
 
 class ResolveLocalizedTemplateFromIndexSpec extends Specification implements ProcessesTemplate {
-    ReactiveFreeMarkerTemplateEngine engine = ReactiveFreeMarkerTemplateEngine.builder()
-            .setTemplateLoader(new ReactiveFreeMarkerClasspathLoader("localization/localized-template-index"))
+    TemplateEngine engine = TemplateEngine.builder()
+            .setTemplateLoader(new ClasspathTemplateLoader("localization/localized-template-index"))
             .build()
 
     def "should resolve non-localized template from index when no locale is passed"() {

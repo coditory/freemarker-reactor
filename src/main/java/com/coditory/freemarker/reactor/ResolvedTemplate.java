@@ -2,13 +2,15 @@ package com.coditory.freemarker.reactor;
 
 import java.util.Objects;
 
+import static java.util.Objects.requireNonNull;
+
 final class ResolvedTemplate {
     private final TemplateKey key;
     private final String content;
 
     public ResolvedTemplate(TemplateKey key, String content) {
-        this.key = key;
-        this.content = content;
+        this.key = requireNonNull(key);
+        this.content = requireNonNull(content);
     }
 
     public TemplateKey getKey() {

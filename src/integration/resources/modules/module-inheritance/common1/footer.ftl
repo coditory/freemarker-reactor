@@ -1,0 +1,1 @@
+Template: common1/footer

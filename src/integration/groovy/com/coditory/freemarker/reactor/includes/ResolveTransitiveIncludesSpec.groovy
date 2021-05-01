@@ -1,15 +1,15 @@
 package com.coditory.freemarker.reactor.includes
 
-import com.coditory.freemarker.reactor.ReactiveFreeMarkerTemplateEngine
+import com.coditory.freemarker.reactor.TemplateEngine
 import com.coditory.freemarker.reactor.base.ProcessesTemplate
-import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerClasspathLoader
+import com.coditory.freemarker.reactor.loader.ClasspathTemplateLoader
 import spock.lang.Specification
 
 import static com.coditory.freemarker.reactor.base.MultilineString.multiline
 
 class ResolveTransitiveIncludesSpec extends Specification implements ProcessesTemplate {
-    ReactiveFreeMarkerTemplateEngine engine = ReactiveFreeMarkerTemplateEngine.builder()
-            .setTemplateLoader(new ReactiveFreeMarkerClasspathLoader("includes/transitive-includes"))
+    TemplateEngine engine = TemplateEngine.builder()
+            .setTemplateLoader(new ClasspathTemplateLoader("includes/transitive-includes"))
             .build()
 
     def "should resolve template with one include"() {

@@ -1,7 +1,7 @@
 package com.coditory.freemarker.reactor
 
 
-import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerFileLoader
+import com.coditory.freemarker.reactor.loader.FileTemplateLoader
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -9,11 +9,11 @@ import java.nio.file.Path
 class LoadTemplateFromFileSpec extends Specification {
     def "should resolve a template from a file"() {
         given:
-            ReactiveFreeMarkerTemplateEngine engine = ReactiveFreeMarkerTemplateEngine.builder()
-                    .setTemplateLoader(new ReactiveFreeMarkerFileLoader(Path.of("src/integration/resources")))
+            TemplateEngine engine = TemplateEngine.builder()
+                    .setTemplateLoader(new FileTemplateLoader(Path.of("src/integration/resources")))
                     .build()
         when:
-            ReactiveFreeMarkerTemplate template = engine.createTemplate("greetings").block()
+            Template template = engine.createTemplate("greetings").block()
         and:
             String result = template.process(name: "John").block()
         then:

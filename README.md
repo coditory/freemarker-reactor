@@ -9,6 +9,13 @@
 Most frameworks (Spring and Ktor) accept blocking templating mechanisms because they are heavily cached. This library
 provides truly non-blocking api. For details read [how it works](#how-it-works).
 
+**Advantages:**
+- Designed to work with project Reactor
+- Uses non-blocking IO
+- Resolved Mono/Flux parameters
+- Provides enhanced template resolution mechanism, that supports: relative paths, scoped templates and directory index file
+- Provides template separation mechanism
+
 ## Installation
 
 Add to your `build.gradle`:
@@ -22,18 +29,33 @@ dependencies {
 ## Usage
 
 ```java
-ReactiveFreeMarkerTemplateEngine engine=ReactiveFreeMarkerTemplateEngine.builder()
-    .setTemplateLoader(new ReactiveFreeMarkerClasspathLoader("templates"))
-    .build();
+ReactiveFreeMarkerTemplateEngine engine = ReactiveFreeMarkerTemplateEngine.create();
 
-ReactiveFreeMarkerTemplate template=engine
+ReactiveFreeMarkerTemplate template = engine
     .createTemplate("template")
     .block();
 
-String result=template.process(Map.of("a",true))
+Map<String, Object> params = Map.of("a",true, b, Mono.just("B"));
+
+String result=template.process(params)
     .block();
 
 System.out.println("Result:\n"+result);
+```
+
+**Default behavior:**
+- templates are resolved from classpath, under `templates` directory
+- templates (and all includes/imports) are cached
+- templates extension is `.ftl`
+
+Sometimes it is desired to skip caches and read templates directly from 
+project files:
+
+```java
+TemplateEngine engine = TemplateEngine.builder()
+    .setTemplateLoader(new FileTemplateLoader("src/main/resources/templates"))
+    .removeCache()
+    .build();
 ```
 
 ## Directives
@@ -120,9 +142,14 @@ checked `<@include "lorem/_index">`.
 
 How non-blocking templating works:
 
+- Template Mono/Flux parameters are resolved
 - Template is loaded in a non-blocking manner
-- Loaded template is parsed using Freemarker library (with blocking api)
-- Template is resolved:
-    - All includes and imports are registered as template dependencies (no IO operations)
-    - All dependencies are resolved using non-blocking mechanism
-    - Template is resolved again until all dependencies are loaded
+- Loaded template is parsed using Freemarker library
+- Template is resolved with a mocked template loader:
+    - All includes and imports are registered as template dependencies (no IO operation is made)
+    - All dependencies are resolved using non-blocking IO
+    - Template is resolved again until all dependencies are resolved
+
+# Warning
+Until version `1.0.0` this library is under heavy development.
+The API may change without backward compatibility.

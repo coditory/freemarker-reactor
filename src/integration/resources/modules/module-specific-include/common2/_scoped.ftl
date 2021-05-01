@@ -1,0 +1,1 @@
+Template: common2/_scoped

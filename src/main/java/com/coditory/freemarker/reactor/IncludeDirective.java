@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
+
 final class IncludeDirective implements TemplateDirective {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -25,23 +27,30 @@ final class IncludeDirective implements TemplateDirective {
             TemplateModel[] loopVars,
             TemplateDirectiveBody body
     ) throws TemplateException {
+        requireNonNull(env);
+        requireNonNull(params);
+        requireNonNull(positional);
+        requireNonNull(loopVars);
         TemplateResolutionContext context = TemplateResolutionContext.getFromThreadLocal();
-        TemplateKey templateKey = context.resolveTemplateKey(env.getCurrentTemplate().getName());
-        TemplateKey includeKey = getInclude(templateKey, env, params, positional);
+        TemplateKey currentTemplateKey = context.getCurrentTemplate(env);
+        TemplateKey includeKey = getInclude(currentTemplateKey, env, params, positional);
         boolean parse = getNamedBooleanParamOrTrue(env, params, "parse");
-        boolean optional = getNamedBooleanParamOrTrue(env, params, "required");
-        context.addDependency(templateKey, includeKey);
-        if (context.isLoaded(includeKey)) {
+        boolean required = getNamedBooleanParamOrTrue(env, params, "required");
+        context.addDependency(currentTemplateKey, includeKey);
+        if (required && context.isMissing(includeKey)) {
+            throw new _MiscTemplateException(env, "Missing template to include: " + includeKey);
+        }
+        if (context.isResolved(includeKey)) {
             Template includedTemplate;
             try {
-                TemplateKey parent = context.getDependentTemplate();
-                context.setDependentTemplate(templateKey);
-                includedTemplate = env.getTemplateForInclusion(includeKey.getName(), null, parse, optional);
-                logger.debug("Included template {} into {}", includeKey, templateKey);
-                context.setDependentTemplate(parent);
+                TemplateKey parent = context.getParentTemplate();
+                context.setParentTemplate(currentTemplateKey);
+                includedTemplate = env.getTemplateForInclusion(includeKey.getName(), null, parse, true);
                 if (includedTemplate != null) {
                     env.include(includedTemplate);
                 }
+                logger.debug("Included template {} into {}", includeKey, currentTemplateKey);
+                context.setParentTemplate(parent);
             } catch (IOException e) {
                 throw new _MiscTemplateException(
                         e, env,

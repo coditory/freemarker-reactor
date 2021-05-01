@@ -1,14 +1,14 @@
 package com.coditory.freemarker.reactor.includes
 
-import com.coditory.freemarker.reactor.ReactiveFreeMarkerTemplateEngine
+import com.coditory.freemarker.reactor.TemplateEngine
 import com.coditory.freemarker.reactor.TemplateResolutionException
 import com.coditory.freemarker.reactor.base.ProcessesTemplate
-import com.coditory.freemarker.reactor.loader.ReactiveFreeMarkerClasspathLoader
+import com.coditory.freemarker.reactor.loader.ClasspathTemplateLoader
 import spock.lang.Specification
 
 class ThrowErrorOnInvalidIncludesSpec extends Specification implements ProcessesTemplate {
-    ReactiveFreeMarkerTemplateEngine engine = ReactiveFreeMarkerTemplateEngine.builder()
-            .setTemplateLoader(new ReactiveFreeMarkerClasspathLoader("includes/invalid-includes"))
+    TemplateEngine engine = TemplateEngine.builder()
+            .setTemplateLoader(new ClasspathTemplateLoader("includes/invalid-includes"))
             .build()
 
     def "should throw error on missing include"() {
@@ -16,8 +16,8 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification implements Processes
             processTemplate("missing-include")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
-            e.message == "Could not resolve template 'missing-include'. Could not resolve template dependency 'missing-123'"
-            e.cause.message == "Missing template 'missing-123'"
+            e.message == "Could not resolve template 'missing-include'"
+            e.cause.message.startsWith("Missing template to include: 'missing-123'")
     }
 
     def "should throw error on missing transitive include"() {
@@ -25,8 +25,8 @@ class ThrowErrorOnInvalidIncludesSpec extends Specification implements Processes
             processTemplate("missing-transitive-include")
         then:
             TemplateResolutionException e = thrown(TemplateResolutionException)
-            e.message == "Could not resolve template 'missing-transitive-include'. Could not resolve template dependency 'missing-123'"
-            e.cause.message == "Missing template 'missing-123'"
+            e.message == "Could not resolve template 'missing-transitive-include'"
+            e.cause.message.startsWith("Missing template to include: 'missing-123'")
     }
 
     def "should throw error on include from root directory"() {

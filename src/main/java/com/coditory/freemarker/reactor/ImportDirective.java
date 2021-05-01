@@ -14,6 +14,7 @@ import java.util.Map;
 
 import static com.coditory.freemarker.reactor.TemplateConstants.PROTECTED_TEMPLATE_PREFIX;
 import static com.coditory.freemarker.reactor.TemplateConstants.SEPARATOR;
+import static java.util.Objects.requireNonNull;
 
 final class ImportDirective implements TemplateDirective {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -26,18 +27,25 @@ final class ImportDirective implements TemplateDirective {
             TemplateModel[] loopVars,
             TemplateDirectiveBody body
     ) throws TemplateException {
+        requireNonNull(env);
+        requireNonNull(params);
+        requireNonNull(positional);
+        requireNonNull(loopVars);
         TemplateResolutionContext context = TemplateResolutionContext.getFromThreadLocal();
-        TemplateKey templateKey = context.resolveTemplateKey(env.getCurrentTemplate().getName());
-        TemplateKey importKey = getImport(templateKey, env, params, positional);
+        TemplateKey currentTemplateKey = context.getCurrentTemplate(env);
+        TemplateKey importKey = getImport(currentTemplateKey, env, params, positional);
         String importNameSpace = getImportNameSpace(importKey, params, positional);
-        context.addDependency(templateKey, importKey);
-        if (context.isLoaded(importKey)) {
+        context.addDependency(currentTemplateKey, importKey);
+        if (context.isMissing(importKey)) {
+            throw new _MiscTemplateException(env, "Missing template to import: " + importKey);
+        }
+        if (context.isResolved(importKey)) {
             try {
-                TemplateKey parent = context.getDependentTemplate();
-                context.setDependentTemplate(templateKey);
+                TemplateKey parent = context.getParentTemplate();
+                context.setParentTemplate(currentTemplateKey);
                 env.importLib(importKey.getName(), importNameSpace);
-                logger.debug("Imported template {} as '{}' into {}", importKey, importNameSpace, templateKey);
-                context.setDependentTemplate(parent);
+                logger.debug("Imported template {} as '{}' into {}", importKey, importNameSpace, currentTemplateKey);
+                context.setParentTemplate(parent);
             } catch (IOException e) {
                 throw new _MiscTemplateException(
                         e, env,

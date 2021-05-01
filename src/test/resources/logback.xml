@@ -5,7 +5,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.coditory" level="debug"/>
+    <logger name="com.coditory" level="trace"/>
 
     <root level="info">
         <appender-ref ref="STDOUT"/>

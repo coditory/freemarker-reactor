@@ -23,6 +23,9 @@ final class TemplateDirectiveAdapter implements TemplateDirectiveModel {
     @Override
     @SuppressWarnings({"unchecked", "rawtypes", "deprecated"})
     public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body) throws TemplateException, IOException {
+        requireNonNull(env);
+        requireNonNull(params);
+        requireNonNull(loopVars);
         List<TemplateModel> positional = extractPositionalParams(env);
         directive.execute(env, params, positional, loopVars, body);
     }
