@@ -87,7 +87,9 @@ nexusPublishing {
     connectTimeout = Duration.ofMinutes(5)
     clientTimeout = Duration.ofMinutes(5)
     repositories {
-        username = project.findProperty('nexusUsername') ?: System.getenv('NEXUS_USERNAME')
-        password = project.findProperty('nexusPassword') ?: System.getenv('NEXUS_PASSWORD')
+        sonatype {
+            username = project.findProperty('nexusUsername') ?: System.getenv('NEXUS_USERNAME')
+            password = project.findProperty('nexusPassword') ?: System.getenv('NEXUS_PASSWORD')
+        }
     }
 }
