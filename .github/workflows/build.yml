@@ -38,61 +38,61 @@ jobs:
           restore-keys: ${{ runner.os }}-gradle
       - name: Build with Gradle
         run: ./gradlew build --scan
-#      - name: Build with Gradle
-#        env:
-#          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
-#        run: ./gradlew build jacocoTestReport coveralls --scan
-#      - name: Publish Reports Artifact
-#        uses: actions/upload-artifact@v2
-#        if: always()
-#        with:
-#          name: Reports
-#          path: build/reports
-#      - name: Release
-#        if: "github.ref == 'refs/heads/master' && steps.changelog.outputs.version != steps.lasttag.outputs.version"
-#        env:
-#          PREV_VERSION: ${{ steps.lasttag.outputs.version }}
-#          NEXT_VERSION: ${{ steps.changelog.outputs.version }}
-#        shell: bash
-#        run: |
-#          git config user.name "Coditory CI"
-#          git config user.email "Coditory CI <admin@coditory.com>"
-#          if [ -n "$PREV_VERSION" ]; then
-#            declare -r ESC_PREV_VERSION="${PREV_VERSION//./\\.}"
-#            sed -i "s|^ *version *= *${ESC_PREV_VERSION} *$|version=${NEXT_VERSION}|" gradle.properties
-#            sed -i "s|${ESC_PREV_VERSION}|${NEXT_VERSION}|" README.md
-#            if [ -n "$(git status --porcelain)" ]; then
-#               git add -A
-#               git commit -a -m "Release v${NEXT_VERSION}" -m "[ci-skip]"
-#               git push origin master
-#            fi
-#          fi
-#          git tag -f "v${NEXT_VERSION}"
-#          git push origin --tags
-#      - name: Publish Snapshot
-#        if: "github.ref != 'refs/heads/master'"
-#        env:
-#          PREV_VERSION: ${{ steps.lasttag.outputs.version }}
-#          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-#          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-#          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-#          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-#        run: ./gradlew publishToSonatype -Pversion="${PREV_VERSION}-${GITHUB_REF#refs/heads/}-SNAPSHOT" -Ppublish
-#      - name: Publish Release
-#        if: "github.ref == 'refs/heads/master' && steps.changelog.outputs.version != steps.lasttag.outputs.version"
-#        env:
-#          NEXT_VERSION: ${{ steps.changelog.outputs.version }}
-#          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-#          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-#          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
-#          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
-#        run: ./gradlew publishToSonatype closeAndReleaseRepository -Pversion=$NEXT_VERSION -Ppublish
-#      - name: Publish GitHub Release
-#        if: "github.ref == 'refs/heads/master' && steps.changelog.outputs.version != steps.lasttag.outputs.version"
-#        uses: actions/create-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          body: ${{ steps.changelog.outputs.description }}
-#          tag_name: v${{ steps.changelog.outputs.version }}
-#          release_name: Release v${{ steps.changelog.outputs.version }}
+      - name: Build with Gradle
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        run: ./gradlew build jacocoTestReport coveralls --scan
+      - name: Publish Reports Artifact
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: Reports
+          path: build/reports
+      - name: Release
+        if: "github.ref == 'refs/heads/master' && steps.changelog.outputs.version != steps.lasttag.outputs.version"
+        env:
+          PREV_VERSION: ${{ steps.lasttag.outputs.version }}
+          NEXT_VERSION: ${{ steps.changelog.outputs.version }}
+        shell: bash
+        run: |
+          git config user.name "Coditory CI"
+          git config user.email "Coditory CI <admin@coditory.com>"
+          if [ -n "$PREV_VERSION" ]; then
+            declare -r ESC_PREV_VERSION="${PREV_VERSION//./\\.}"
+            sed -i "s|^ *version *= *${ESC_PREV_VERSION} *$|version=${NEXT_VERSION}|" gradle.properties
+            sed -i "s|${ESC_PREV_VERSION}|${NEXT_VERSION}|" README.md
+            if [ -n "$(git status --porcelain)" ]; then
+               git add -A
+               git commit -a -m "Release v${NEXT_VERSION}" -m "[ci-skip]"
+               git push origin master
+            fi
+          fi
+          git tag -f "v${NEXT_VERSION}"
+          git push origin --tags
+      - name: Publish Snapshot
+        if: "github.ref != 'refs/heads/master'"
+        env:
+          PREV_VERSION: ${{ steps.lasttag.outputs.version }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        run: ./gradlew publishToSonatype -Pversion="${PREV_VERSION}-${GITHUB_REF#refs/heads/}-SNAPSHOT" -Ppublish
+      - name: Publish Release
+        if: "github.ref == 'refs/heads/master' && steps.changelog.outputs.version != steps.lasttag.outputs.version"
+        env:
+          NEXT_VERSION: ${{ steps.changelog.outputs.version }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        run: ./gradlew publishToSonatype closeAndReleaseRepository -Pversion=$NEXT_VERSION -Ppublish
+      - name: Publish GitHub Release
+        if: "github.ref == 'refs/heads/master' && steps.changelog.outputs.version != steps.lasttag.outputs.version"
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          body: ${{ steps.changelog.outputs.description }}
+          tag_name: v${{ steps.changelog.outputs.version }}
+          release_name: Release v${{ steps.changelog.outputs.version }}
