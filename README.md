@@ -22,7 +22,7 @@ Add to your `build.gradle`:
 
 ```gradle
 dependencies {
-    compile 'com.coditory.freemarker:freemarker-reactor:0.1.1'
+    compile 'com.coditory.freemarker:freemarker-reactor:0.1.2'
 }
 ```
 
