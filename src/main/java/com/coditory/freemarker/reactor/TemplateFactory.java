@@ -8,16 +8,16 @@ import java.util.Locale;
 
 import static java.util.Objects.requireNonNull;
 
-public final class TemplateEngine {
-    public static TemplateEngineBuilder builder(Version version) {
-        return new TemplateEngineBuilder(version);
+public final class TemplateFactory {
+    public static TemplateFactoryBuilder builder(Version version) {
+        return new TemplateFactoryBuilder(version);
     }
 
-    public static TemplateEngineBuilder builder() {
+    public static TemplateFactoryBuilder builder() {
         return builder(Configuration.VERSION_2_3_31);
     }
 
-    public static TemplateEngine create() {
+    public static TemplateFactory create() {
         return builder(Configuration.VERSION_2_3_31)
                 .build();
     }
@@ -26,7 +26,7 @@ public final class TemplateEngine {
     private final TemplateResolver loader;
     private final Locale defaultLocale;
 
-    TemplateEngine(
+    TemplateFactory(
             Configuration configuration,
             TemplateResolver loader,
             Locale defaultLocale

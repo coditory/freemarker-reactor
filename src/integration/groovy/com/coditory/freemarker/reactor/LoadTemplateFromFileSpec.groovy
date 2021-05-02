@@ -9,7 +9,7 @@ import java.nio.file.Path
 class LoadTemplateFromFileSpec extends Specification {
     def "should resolve a template from a file"() {
         given:
-            TemplateEngine engine = TemplateEngine.builder()
+            TemplateFactory engine = TemplateFactory.builder()
                     .setTemplateLoader(new FileTemplateLoader(Path.of("src/integration/resources")))
                     .build()
         when:

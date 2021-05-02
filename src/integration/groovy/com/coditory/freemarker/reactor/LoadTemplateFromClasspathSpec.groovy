@@ -6,7 +6,7 @@ import spock.lang.Specification
 class LoadTemplateFromClasspathSpec extends Specification {
     def "should resolve a template from classpath"() {
         given:
-            TemplateEngine engine = TemplateEngine.builder()
+            TemplateFactory engine = TemplateFactory.builder()
                     .setTemplateLoader(new ClasspathTemplateLoader())
                     .build()
         when:

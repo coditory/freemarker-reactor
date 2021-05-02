@@ -1,13 +1,13 @@
 package com.coditory.freemarker.reactor.includes
 
-import com.coditory.freemarker.reactor.TemplateEngine
+import com.coditory.freemarker.reactor.TemplateFactory
 import com.coditory.freemarker.reactor.TemplateResolutionException
 import com.coditory.freemarker.reactor.base.ProcessesTemplate
 import com.coditory.freemarker.reactor.loader.ClasspathTemplateLoader
 import spock.lang.Specification
 
 class ThrowErrorOnInvalidIncludesSpec extends Specification implements ProcessesTemplate {
-    TemplateEngine engine = TemplateEngine.builder()
+    TemplateFactory engine = TemplateFactory.builder()
             .setTemplateLoader(new ClasspathTemplateLoader("includes/invalid-includes"))
             .build()
 

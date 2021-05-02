@@ -29,15 +29,15 @@ dependencies {
 ## Usage
 
 ```java
-ReactiveFreeMarkerTemplateEngine engine = ReactiveFreeMarkerTemplateEngine.create();
+TemplateFactory templateFactory = TemplateFactory.create();
 
-ReactiveFreeMarkerTemplate template = engine
+ReactiveFreeMarkerTemplate template = templateFactory
     .createTemplate("template")
     .block();
 
 Map<String, Object> params = Map.of("a",true, b, Mono.just("B"));
 
-String result=template.process(params)
+String result = template.process(params)
     .block();
 
 System.out.println("Result:\n"+result);
@@ -52,7 +52,7 @@ Sometimes it is desired to skip caches and read templates directly from
 project files:
 
 ```java
-TemplateEngine engine = TemplateEngine.builder()
+TemplateFactory templateFactory = TemplateFactory.builder()
     .setTemplateLoader(new FileTemplateLoader("src/main/resources/templates"))
     .removeCache()
     .build();
@@ -61,85 +61,65 @@ TemplateEngine engine = TemplateEngine.builder()
 ## Directives
 
 ### Import
-
-Instead of using original and synchronous `<#import ...>` use `<@import ...>`.
+Reactive version of [the `<#import>` directive](https://freemarker.apache.org/docs/ref_directive_import.html).
+Imports collection of macros under specific namespace.
 
 **Example:**
+```
+<@import "./a">
+<#a.greetings user=${user}/>
+```
 
 - `<@import "./a">` - imports template "./a" as "a"
 - `<@import name="./a" ns="b">` - imports template "./a" as "b"
 
-**Usage:**
-
-```
-<@import "./a">
-
-Greetings:
-<#a.greetings user=${user}/>
-```
-
 **Parameters:**
-
 - `name` - points to the template (see [Template Resolution](#template-resolution))
 - `ns` - (default: derived from template file name) namespace for imported template macros
 
 ### Include
-
-Instead of using original and synchronous `<#include ...>` use `<@include ...>`.
+Reactive version of [the `<#include>` directive](https://freemarker.apache.org/docs/ref_directive_include.html).
+Inserts another template into current template.
 
 **Example:**
-
 - `<@include "./a">` - imports template "./a"
 - `<@include name="./a" parse=false required=false>` - imports optional template "./a" without interpreting
 
 **Parameters:**
-
 - `name` - points to the template (see [Template Resolution](#template-resolution))
 - `parse` - (default: true) if included template should be interpreted
 - `required` - (default: true) if included template is required
 
 ## Template Resolution
-
 This library modifies FreeMarker template resolution mechanism. New mechanism handles [relative paths](#relative-paths)
 , [scoped templates](#scoped-templates) and [directory index files](#directory-index-file).
 
 ### Relative Paths
-
 - `<@include "lorem">` - includes `lorem.ftl` template from the base path
 - `<@include "./lorem">` - includes `lorem.ftl` template relative to the template where the include was used
 - `<@include "../lorem">` - includes `lorem.ftl` template relative to the template where the include was used Relative
   paths work with both `<@include ...>` and `<@import ...>` directives.
 
 ### Scoped templates
-
 Scoped templates provide template encapsulation that work similar to java package scope. Whenever there is a template
 that should not be included/imported from other directory, prefix its name with `_`.
 
-Example:
-
+**Example:**
 - `lorem/_header.ftl` - can be imported only from `lorem` directory
 - `lorem/footer.ftl` - can be imported be every other template
 
 ### Directory index file
 
-It's often that a huge template file is split into smaller files in a single directory. Example:
-
+Imports and includes like `<@include "lorem">` and `<@import "lorem">` will search for `lorem` and `lorem/_index`.
+Therefore, you can split big template files into smaller files under a single directory:
 ```
-// Before
-./lorem.ftl
-
-// After
 ./lorem/_index.ftl
 ./lorem/_header.ftl
 ./lorem/_main.ftl
 ./lorem/_footer.ftl
 ```
 
-For such scenarios when there is no template for `<@include "lorem">` an alternative path is
-checked `<@include "lorem/_index">`.
-
 # How it works
-
 How non-blocking templating works:
 
 - Template Mono/Flux parameters are resolved

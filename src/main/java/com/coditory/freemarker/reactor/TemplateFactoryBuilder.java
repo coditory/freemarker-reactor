@@ -27,14 +27,14 @@ import java.util.TimeZone;
 
 import static java.util.Objects.requireNonNull;
 
-public final class TemplateEngineBuilder {
+public final class TemplateFactoryBuilder {
     private final Configuration configuration;
     private Locale defaultLocale;
     private List<String> commonModules = List.of();
     private TemplateLoader templateLoader = new CachedTemplateLoader(new ClasspathTemplateLoader("templates"));
     private Cache<TemplateKey, ResolvedTemplate> templateResolverCache = Cache.concurrentMapCache();
 
-    TemplateEngineBuilder(Version version) {
+    TemplateFactoryBuilder(Version version) {
         this.configuration = new Configuration(version);
         this.configuration.setCacheStorage(new NullCacheStorage());
         this.configuration.setLocalizedLookup(false);
@@ -42,234 +42,234 @@ public final class TemplateEngineBuilder {
         this.configuration.setLogTemplateExceptions(false);
     }
 
-    public TemplateEngineBuilder setDefaultEncoding(String defaultEncoding) {
+    public TemplateFactoryBuilder setDefaultEncoding(String defaultEncoding) {
         configuration.setDefaultEncoding(defaultEncoding);
         return this;
     }
 
-    public TemplateEngineBuilder setAutoEscapingPolicy(int autoEscapingPolicy) {
+    public TemplateFactoryBuilder setAutoEscapingPolicy(int autoEscapingPolicy) {
         configuration.setAutoEscapingPolicy(autoEscapingPolicy);
         return this;
     }
 
-    public TemplateEngineBuilder setAllSharedVariables(TemplateHashModelEx allSharedVariables) throws TemplateModelException {
+    public TemplateFactoryBuilder setAllSharedVariables(TemplateHashModelEx allSharedVariables) throws TemplateModelException {
         configuration.setAllSharedVariables(allSharedVariables);
         return this;
     }
 
-    public TemplateEngineBuilder setAttemptExceptionReporter(AttemptExceptionReporter attemptExceptionReporter) {
+    public TemplateFactoryBuilder setAttemptExceptionReporter(AttemptExceptionReporter attemptExceptionReporter) {
         configuration.setAttemptExceptionReporter(attemptExceptionReporter);
         return this;
     }
 
-    public TemplateEngineBuilder setFallbackOnNullLoopVariable(boolean fallback) {
+    public TemplateFactoryBuilder setFallbackOnNullLoopVariable(boolean fallback) {
         configuration.setFallbackOnNullLoopVariable(fallback);
         return this;
     }
 
-    public TemplateEngineBuilder setIncompatibleImprovements(Version incompatibleImprovements) {
+    public TemplateFactoryBuilder setIncompatibleImprovements(Version incompatibleImprovements) {
         configuration.setIncompatibleImprovements(incompatibleImprovements);
         return this;
     }
 
-    public TemplateEngineBuilder setInterpolationSyntax(int interpolationSyntax) {
+    public TemplateFactoryBuilder setInterpolationSyntax(int interpolationSyntax) {
         configuration.setInterpolationSyntax(interpolationSyntax);
         return this;
     }
 
-    public TemplateEngineBuilder setDefaultLocale(Locale locale) {
+    public TemplateFactoryBuilder setDefaultLocale(Locale locale) {
         this.defaultLocale = locale;
         configuration.setLocale(locale);
         return this;
     }
 
-    public TemplateEngineBuilder setNamingConvention(int namingConvention) {
+    public TemplateFactoryBuilder setNamingConvention(int namingConvention) {
         configuration.setNamingConvention(namingConvention);
         return this;
     }
 
-    public TemplateEngineBuilder setNamingConvention(ObjectWrapper objectWrapper) {
+    public TemplateFactoryBuilder setNamingConvention(ObjectWrapper objectWrapper) {
         configuration.setObjectWrapper(objectWrapper);
         return this;
     }
 
-    public TemplateEngineBuilder setOutputFormat(OutputFormat outputFormat) {
+    public TemplateFactoryBuilder setOutputFormat(OutputFormat outputFormat) {
         configuration.setOutputFormat(outputFormat);
         return this;
     }
 
-    public TemplateEngineBuilder setRegisteredCustomOutputFormats(Collection<? extends OutputFormat> registeredCustomOutputFormats) {
+    public TemplateFactoryBuilder setRegisteredCustomOutputFormats(Collection<? extends OutputFormat> registeredCustomOutputFormats) {
         configuration.setRegisteredCustomOutputFormats(registeredCustomOutputFormats);
         return this;
     }
 
-    public TemplateEngineBuilder setSetting(String name, String value) throws TemplateException {
+    public TemplateFactoryBuilder setSetting(String name, String value) throws TemplateException {
         configuration.setSetting(name, value);
         return this;
     }
 
-    public TemplateEngineBuilder setSetting(String name, Object value) throws TemplateException {
+    public TemplateFactoryBuilder setSetting(String name, Object value) throws TemplateException {
         configuration.setSharedVariable(name, value);
         return this;
     }
 
-    public TemplateEngineBuilder setSetting(String name, TemplateModel value) throws TemplateException {
+    public TemplateFactoryBuilder setSetting(String name, TemplateModel value) throws TemplateException {
         configuration.setSharedVariable(name, value);
         return this;
     }
 
-    public TemplateEngineBuilder setSharedVariables(Map<String, ?> variables) throws TemplateException {
+    public TemplateFactoryBuilder setSharedVariables(Map<String, ?> variables) throws TemplateException {
         configuration.setSharedVariables(variables);
         return this;
     }
 
-    public TemplateEngineBuilder setSharedVariables(int tabSize) {
+    public TemplateFactoryBuilder setSharedVariables(int tabSize) {
         configuration.setTabSize(tabSize);
         return this;
     }
 
-    public TemplateEngineBuilder setTagSyntax(int tagSyntax) {
+    public TemplateFactoryBuilder setTagSyntax(int tagSyntax) {
         configuration.setTagSyntax(tagSyntax);
         return this;
     }
 
-    public TemplateEngineBuilder setTimeZone(TimeZone timeZone) {
+    public TemplateFactoryBuilder setTimeZone(TimeZone timeZone) {
         configuration.setTimeZone(timeZone);
         return this;
     }
 
-    public TemplateEngineBuilder setWhitespaceStripping(boolean whitespaceStripping) {
+    public TemplateFactoryBuilder setWhitespaceStripping(boolean whitespaceStripping) {
         configuration.setWhitespaceStripping(whitespaceStripping);
         return this;
     }
 
-    public TemplateEngineBuilder setWrapUncheckedExceptions(boolean wrapUncheckedExceptions) {
+    public TemplateFactoryBuilder setWrapUncheckedExceptions(boolean wrapUncheckedExceptions) {
         configuration.setWrapUncheckedExceptions(wrapUncheckedExceptions);
         return this;
     }
 
-    public TemplateEngineBuilder setApiBuiltinEnabled(boolean apiBuiltinEnabled) {
+    public TemplateFactoryBuilder setApiBuiltinEnabled(boolean apiBuiltinEnabled) {
         configuration.setAPIBuiltinEnabled(apiBuiltinEnabled);
         return this;
     }
 
-    public TemplateEngineBuilder setApiBuiltinEnabled(ArithmeticEngine arithmeticEngine) {
+    public TemplateFactoryBuilder setApiBuiltinEnabled(ArithmeticEngine arithmeticEngine) {
         configuration.setArithmeticEngine(arithmeticEngine);
         return this;
     }
 
-    public TemplateEngineBuilder setAutoImports(Map<String, String> map) {
+    public TemplateFactoryBuilder setAutoImports(Map<String, String> map) {
         configuration.setAutoImports(map);
         return this;
     }
 
-    public TemplateEngineBuilder setAutoIncludes(List<String> includes) {
+    public TemplateFactoryBuilder setAutoIncludes(List<String> includes) {
         configuration.setAutoIncludes(includes);
         return this;
     }
 
-    public TemplateEngineBuilder setBooleanFormat(String booleanFormat) {
+    public TemplateFactoryBuilder setBooleanFormat(String booleanFormat) {
         configuration.setBooleanFormat(booleanFormat);
         return this;
     }
 
-    public TemplateEngineBuilder setAutoIncludes(String booleanFormat) {
+    public TemplateFactoryBuilder setAutoIncludes(String booleanFormat) {
         configuration.setBooleanFormat(booleanFormat);
         return this;
     }
 
-    public TemplateEngineBuilder setClassicCompatible(boolean classicCompatible) {
+    public TemplateFactoryBuilder setClassicCompatible(boolean classicCompatible) {
         configuration.setClassicCompatible(classicCompatible);
         return this;
     }
 
-    public TemplateEngineBuilder setCustomAttribute(String name, Object value) {
+    public TemplateFactoryBuilder setCustomAttribute(String name, Object value) {
         configuration.setCustomAttribute(name, value);
         return this;
     }
 
-    public TemplateEngineBuilder setCustomDateFormats(Map<String, ? extends TemplateDateFormatFactory> customDateFormats) {
+    public TemplateFactoryBuilder setCustomDateFormats(Map<String, ? extends TemplateDateFormatFactory> customDateFormats) {
         configuration.setCustomDateFormats(customDateFormats);
         return this;
     }
 
-    public TemplateEngineBuilder setCustomNumberFormats(Map<String, ? extends TemplateNumberFormatFactory> customNumberFormats) {
+    public TemplateFactoryBuilder setCustomNumberFormats(Map<String, ? extends TemplateNumberFormatFactory> customNumberFormats) {
         configuration.setCustomNumberFormats(customNumberFormats);
         return this;
     }
 
-    public TemplateEngineBuilder setDateFormat(String dateFormat) {
+    public TemplateFactoryBuilder setDateFormat(String dateFormat) {
         configuration.setDateFormat(dateFormat);
         return this;
     }
 
-    public TemplateEngineBuilder setDateTimeFormat(String dateTimeFormat) {
+    public TemplateFactoryBuilder setDateTimeFormat(String dateTimeFormat) {
         configuration.setDateTimeFormat(dateTimeFormat);
         return this;
     }
 
-    public TemplateEngineBuilder setLazyAutoImports(boolean lazyAutoImports) {
+    public TemplateFactoryBuilder setLazyAutoImports(boolean lazyAutoImports) {
         configuration.setLazyAutoImports(lazyAutoImports);
         return this;
     }
 
-    public TemplateEngineBuilder setNewBuiltinClassResolver(TemplateClassResolver newBuiltinClassResolver) {
+    public TemplateFactoryBuilder setNewBuiltinClassResolver(TemplateClassResolver newBuiltinClassResolver) {
         configuration.setNewBuiltinClassResolver(newBuiltinClassResolver);
         return this;
     }
 
-    public TemplateEngineBuilder setOutputEncoding(String outputEncoding) {
+    public TemplateFactoryBuilder setOutputEncoding(String outputEncoding) {
         configuration.setOutputEncoding(outputEncoding);
         return this;
     }
 
-    public TemplateEngineBuilder setNumberFormat(String numberFormat) {
+    public TemplateFactoryBuilder setNumberFormat(String numberFormat) {
         configuration.setNumberFormat(numberFormat);
         return this;
     }
 
-    public TemplateEngineBuilder setShowErrorTips(boolean showErrorTips) {
+    public TemplateFactoryBuilder setShowErrorTips(boolean showErrorTips) {
         configuration.setShowErrorTips(showErrorTips);
         return this;
     }
 
-    public TemplateEngineBuilder setTimeFormat(String timeFormat) {
+    public TemplateFactoryBuilder setTimeFormat(String timeFormat) {
         configuration.setTimeFormat(timeFormat);
         return this;
     }
 
-    public TemplateEngineBuilder setTruncateBuiltinAlgorithm(TruncateBuiltinAlgorithm truncateBuiltinAlgorithm) {
+    public TemplateFactoryBuilder setTruncateBuiltinAlgorithm(TruncateBuiltinAlgorithm truncateBuiltinAlgorithm) {
         configuration.setTruncateBuiltinAlgorithm(truncateBuiltinAlgorithm);
         return this;
     }
 
-    public TemplateEngineBuilder setTemplateLoader(TemplateLoader templateLoader) {
+    public TemplateFactoryBuilder setTemplateLoader(TemplateLoader templateLoader) {
         this.templateLoader = requireNonNull(templateLoader);
         return this;
     }
 
-    public TemplateEngineBuilder setCommonModules(List<String> commonModules) {
+    public TemplateFactoryBuilder setCommonModules(List<String> commonModules) {
         this.commonModules = requireNonNull(commonModules);
         return this;
     }
 
     @SuppressWarnings("unchecked")
-    public TemplateEngineBuilder setTemplateCache(Cache<TemplateKey, ?> cache) {
+    public TemplateFactoryBuilder setTemplateCache(Cache<TemplateKey, ?> cache) {
         requireNonNull(cache);
         this.templateResolverCache = (Cache<TemplateKey, ResolvedTemplate>) cache;
         return this;
     }
 
-    public TemplateEngineBuilder removeCache() {
+    public TemplateFactoryBuilder removeCache() {
         this.templateResolverCache = Cache.alwaysEmpty();
         return this;
     }
 
-    public TemplateEngine build() {
+    public TemplateFactory build() {
         configuration.setSharedVariable("include", new TemplateDirectiveAdapter(new IncludeDirective()));
         configuration.setSharedVariable("import", new TemplateDirectiveAdapter(new ImportDirective()));
         configuration.setTemplateLoader(new FreeMarkerTemplateLoaderAdapter());
         TemplateResolver loader = new TemplateResolver(templateLoader, commonModules, templateResolverCache);
-        return new TemplateEngine(configuration, loader, defaultLocale);
+        return new TemplateFactory(configuration, loader, defaultLocale);
     }
 }

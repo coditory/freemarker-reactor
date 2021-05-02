@@ -1,7 +1,7 @@
 package com.coditory.freemarker.reactor.modules
 
 import com.coditory.freemarker.reactor.Template
-import com.coditory.freemarker.reactor.TemplateEngine
+import com.coditory.freemarker.reactor.TemplateFactory
 import com.coditory.freemarker.reactor.base.ProcessesTemplate
 import com.coditory.freemarker.reactor.loader.ClasspathTemplateLoader
 import spock.lang.Specification
@@ -9,7 +9,7 @@ import spock.lang.Specification
 import static com.coditory.freemarker.reactor.base.MultilineString.multiline
 
 class ResolveIncludesFromCommonModuleSpec extends Specification implements ProcessesTemplate {
-    TemplateEngine engine = TemplateEngine.builder()
+    TemplateFactory engine = TemplateFactory.builder()
             .setTemplateLoader(new ClasspathTemplateLoader("modules/common-module"))
             .build()
 

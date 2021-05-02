@@ -9,7 +9,7 @@ import static com.coditory.freemarker.reactor.base.MultilineString.multiline
 
 class ResolveReactiveParametersSpec extends Specification {
     InMemoryFreeMarkerTemplateLoader templateLoader = new InMemoryFreeMarkerTemplateLoader()
-    TemplateEngine engine = TemplateEngine.builder()
+    TemplateFactory engine = TemplateFactory.builder()
             .setTemplateLoader(templateLoader)
             .build()
 
